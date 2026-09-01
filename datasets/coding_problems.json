@@ -1,0 +1,139 @@
+[
+  {
+    "id": "prob_two_sum",
+    "course_id": "course_dsa_masterclass",
+    "title": "Two Sum Target",
+    "slug": "two-sum-target",
+    "difficulty": "Easy",
+    "tags": ["Array", "Hash Table", "DSA"],
+    "statement": "Given an integer array `nums` and an integer `target`, return the indices `[i, j]` of the two numbers such that they add up to `target`. Assume exactly one solution exists.",
+    "input_format": "First line contains space-separated integers representing the array `nums`.\nSecond line contains integer `target`.",
+    "output_format": "Two space-separated indices.",
+    "constraints": "2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9",
+    "time_limit_sec": 2.0,
+    "memory_limit_mb": 128,
+    "starter_code": {
+      "python": "import sys\n\ndef solve():\n    lines = sys.stdin.read().strip().split('\\n')\n    if not lines or not lines[0]:\n        return\n    nums = list(map(int, lines[0].split()))\n    target = int(lines[1].strip())\n    \n    # Write your solution here\n    seen = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            print(f\"{seen[complement]} {i}\")\n            return\n        seen[num] = i\n\nif __name__ == '__main__':\n    solve()\n",
+      "javascript": "const readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin, output: process.stdout });\nlet lines = [];\nrl.on('line', (line) => lines.push(line));\nrl.on('close', () => {\n    if (lines.length < 2) return;\n    const nums = lines[0].trim().split(/\\s+/).map(Number);\n    const target = Number(lines[1].trim());\n    const seen = new Map();\n    for (let i = 0; i < nums.length; i++) {\n        const diff = target - nums[i];\n        if (seen.has(diff)) {\n            console.log(`${seen.get(diff)} ${i}`);\n            return;\n        }\n        seen.set(nums[i], i);\n    }\n});\n",
+      "c": "#include <stdio.h>\n\nint main() {\n    int nums[10000];\n    int n = 0, target;\n    while (scanf(\"%d\", &nums[n]) == 1) {\n        n++;\n        char c = getchar();\n        if (c == '\\n' || c == EOF) break;\n    }\n    scanf(\"%d\", &target);\n    for (int i = 0; i < n; i++) {\n        for (int j = i + 1; j < n; j++) {\n            if (nums[i] + nums[j] == target) {\n                printf(\"%d %d\\n\", i, j);\n                return 0;\n            }\n        }\n    }\n    return 0;\n}\n"
+    },
+    "test_cases": [
+      {
+        "id": "tc_two_sum_1",
+        "input_data": "2 7 11 15\n9",
+        "expected_output": "0 1",
+        "is_hidden": false,
+        "explanation": "nums[0] + nums[1] == 2 + 7 == 9, so indices are 0 1."
+      },
+      {
+        "id": "tc_two_sum_2",
+        "input_data": "3 2 4\n6",
+        "expected_output": "1 2",
+        "is_hidden": false,
+        "explanation": "nums[1] + nums[2] == 2 + 4 == 6, so indices are 1 2."
+      },
+      {
+        "id": "tc_two_sum_3",
+        "input_data": "3 3\n6",
+        "expected_output": "0 1",
+        "is_hidden": true,
+        "explanation": "Hidden edge case test."
+      },
+      {
+        "id": "tc_two_sum_4",
+        "input_data": "100 -50 25 75\n25",
+        "expected_output": "1 3",
+        "is_hidden": true,
+        "explanation": "Hidden negative values test."
+      }
+    ]
+  },
+  {
+    "id": "prob_reverse_string",
+    "course_id": "course_python_101",
+    "title": "Reverse Words in a String",
+    "slug": "reverse-words-string",
+    "difficulty": "Easy",
+    "tags": ["String", "Two Pointers", "Basics"],
+    "statement": "Given an input string `s`, reverse the order of the words. A word is defined as a sequence of non-space characters. The words in `s` will be separated by at least one space. Return a string of the words in reverse order concatenated by a single space.",
+    "input_format": "Single line containing string `s`.",
+    "output_format": "Single line containing reversed words.",
+    "constraints": "1 <= s.length <= 10^4",
+    "time_limit_sec": 2.0,
+    "memory_limit_mb": 128,
+    "starter_code": {
+      "python": "import sys\n\ndef solve():\n    s = sys.stdin.read().strip()\n    words = s.split()\n    print(' '.join(reversed(words)))\n\nif __name__ == '__main__':\n    solve()\n",
+      "javascript": "const readline = require('readline');\nconst rl = readline.createInterface({ input: process.stdin, output: process.stdout });\nrl.on('line', (line) => {\n    const words = line.trim().split(/\\s+/);\n    console.log(words.reverse().join(' '));\n});\n"
+    },
+    "test_cases": [
+      {
+        "id": "tc_rev_1",
+        "input_data": "the sky is blue",
+        "expected_output": "blue is sky the",
+        "is_hidden": false,
+        "explanation": "Standard sentence reversal."
+      },
+      {
+        "id": "tc_rev_2",
+        "input_data": "  hello world  ",
+        "expected_output": "world hello",
+        "is_hidden": false,
+        "explanation": "Leading and trailing spaces trimmed."
+      },
+      {
+        "id": "tc_rev_3",
+        "input_data": "BTech Computer Science Engineering",
+        "expected_output": "Engineering Science Computer BTech",
+        "is_hidden": true,
+        "explanation": "Hidden comprehensive test case."
+      }
+    ]
+  },
+  {
+    "id": "prob_valid_parentheses",
+    "course_id": "course_dsa_masterclass",
+    "title": "Valid Parentheses Syntax",
+    "slug": "valid-parentheses",
+    "difficulty": "Medium",
+    "tags": ["Stack", "Data Structures", "B.Tech Exam"],
+    "statement": "Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`, `'['` and `']'`, determine if the input string is valid.\n\nAn input string is valid if:\n1. Open brackets must be closed by the same type of brackets.\n2. Open brackets must be closed in the correct order.\n\nPrint `true` if valid, otherwise `false`.",
+    "input_format": "Single string `s`.",
+    "output_format": "`true` or `false`.",
+    "constraints": "1 <= s.length <= 10^4",
+    "time_limit_sec": 2.0,
+    "memory_limit_mb": 128,
+    "starter_code": {
+      "python": "import sys\n\ndef isValid(s: str) -> bool:\n    stack = []\n    mapping = {')': '(', '}': '{', ']': '['}\n    for char in s:\n        if char in mapping:\n            top = stack.pop() if stack else '#'\n            if mapping[char] != top:\n                return False\n        else:\n            stack.append(char)\n    return not stack\n\nif __name__ == '__main__':\n    inp = sys.stdin.read().strip()\n    print(\"true\" if isValid(inp) else \"false\")\n"
+    },
+    "test_cases": [
+      {
+        "id": "tc_vp_1",
+        "input_data": "()[]{}",
+        "expected_output": "true",
+        "is_hidden": false,
+        "explanation": "All matched properly."
+      },
+      {
+        "id": "tc_vp_2",
+        "input_data": "(]",
+        "expected_output": "false",
+        "is_hidden": false,
+        "explanation": "Mismatched bracket types."
+      },
+      {
+        "id": "tc_vp_3",
+        "input_data": "([{}])",
+        "expected_output": "true",
+        "is_hidden": true,
+        "explanation": "Nested valid brackets."
+      },
+      {
+        "id": "tc_vp_4",
+        "input_data": "((((({{{[[[]]]}}})))))[",
+        "expected_output": "false",
+        "is_hidden": true,
+        "explanation": "Unclosed trailing bracket."
+      }
+    ]
+  }
+]

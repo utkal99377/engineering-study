@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #0A0B0E;
+    --bg-secondary: #121318;
+    --bg-tertiary: #181A20;
+    --border-color: #232630;
+    --brand-primary: #3B82F6;
+    --text-primary: #F3F4F6;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.025em;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+/* Minimalist Clean Dark UI Containers */
+.clean-panel {
+  background-color: #121318;
+  border: 1px solid #232630;
+  border-radius: 14px;
+}
+
+.clean-card {
+  background-color: #15171F;
+  border: 1px solid #232630;
+  border-radius: 12px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.clean-card:hover {
+  border-color: #374151;
+  background-color: #181B24;
+}
+
+.clean-input {
+  background-color: #0E1015;
+  border: 1px solid #232630;
+  color: #F3F4F6;
+  border-radius: 8px;
+  transition: border-color 0.15s ease;
+}
+
+.clean-input:focus {
+  border-color: #4F46E5;
+  outline: none;
+}
+
+.clean-btn {
+  background-color: #20232D;
+  color: #F3F4F6;
+  border: 1px solid #2E323F;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.clean-btn:hover {
+  background-color: #292D3B;
+  border-color: #3F4455;
+}
+
+.clean-btn-primary {
+  background-color: #272A36;
+  color: #FFFFFF;
+  border: 1px solid #3B4052;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.clean-btn-primary:hover {
+  background-color: #323646;
+  border-color: #4C5268;
+}
+
+/* Minimal Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0B0E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #232630;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Watermark */
+@keyframes watermarkFloat {
+  0% { transform: translate(5%, 5%) rotate(-12deg); opacity: 0.15; }
+  50% { transform: translate(65%, 70%) rotate(-10deg); opacity: 0.25; }
+  100% { transform: translate(5%, 5%) rotate(-12deg); opacity: 0.15; }
+}
+
+.watermark-animated {
+  animation: watermarkFloat 18s ease-in-out infinite alternate;
+  pointer-events: none;
+  user-select: none;
+}
+
+.protected-content {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}

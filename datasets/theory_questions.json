@@ -1,0 +1,111 @@
+[
+  {
+    "id": "q_py_01",
+    "course_id": "course_python_101",
+    "module_id": "mod_py_1",
+    "type": "mcq",
+    "title": "Python Memory & Bytecode",
+    "text": "What file extension is used for compiled Python bytecode files created by the interpreter?",
+    "options": [
+      ".py",
+      ".pyc",
+      ".pyd",
+      ".exe"
+    ],
+    "correct_answer": ".pyc",
+    "explanation": "Python compiles source files (.py) into bytecode cache files (.pyc) inside the __pycache__ directory to speed up subsequent load times.",
+    "marks": 2,
+    "difficulty": "Easy",
+    "is_important": true
+  },
+  {
+    "id": "q_py_02",
+    "course_id": "course_python_101",
+    "module_id": "mod_py_1",
+    "type": "mcq",
+    "title": "Python Immutability",
+    "text": "Which of the following built-in data types in Python is IMMUTABLE?",
+    "options": [
+      "list",
+      "dict",
+      "tuple",
+      "set"
+    ],
+    "correct_answer": "tuple",
+    "explanation": "Tuples and strings in Python cannot be modified in place once initialized; lists, dictionaries, and sets are mutable.",
+    "marks": 2,
+    "difficulty": "Easy",
+    "is_important": true
+  },
+  {
+    "id": "q_c_01",
+    "course_id": "course_c_foundations",
+    "module_id": "mod_c_1",
+    "type": "mcq",
+    "title": "Pointer Memory Calculation",
+    "text": "In a 64-bit architecture, what is the value of `sizeof(int*)` in C?",
+    "options": [
+      "2 bytes",
+      "4 bytes",
+      "8 bytes",
+      "Depends on the integer size"
+    ],
+    "correct_answer": "8 bytes",
+    "explanation": "On 64-bit systems, all pointers (regardless of the underlying data type they point to) occupy 8 bytes of virtual memory address space.",
+    "marks": 2,
+    "difficulty": "Medium",
+    "is_important": true
+  },
+  {
+    "id": "q_c_02",
+    "course_id": "course_c_foundations",
+    "module_id": "mod_c_1",
+    "type": "mcq",
+    "title": "Dynamic Memory Allocation",
+    "text": "Which standard library function allocates memory from the heap and initializes all bits to zero?",
+    "options": [
+      "malloc()",
+      "calloc()",
+      "realloc()",
+      "free()"
+    ],
+    "correct_answer": "calloc()",
+    "explanation": "calloc(num, size) allocates memory and zero-initializes all bytes, whereas malloc() leaves the memory uninitialized (garbage values).",
+    "marks": 2,
+    "difficulty": "Easy",
+    "is_important": false
+  },
+  {
+    "id": "q_dsa_01",
+    "course_id": "course_dsa_masterclass",
+    "module_id": "mod_dsa_1",
+    "type": "mcq",
+    "title": "Binary Search Time Complexity",
+    "text": "What is the worst-case time complexity of Binary Search on a sorted array of N elements?",
+    "options": [
+      "O(1)",
+      "O(log N)",
+      "O(N)",
+      "O(N log N)"
+    ],
+    "correct_answer": "O(log N)",
+    "explanation": "Binary search halves the search space at each iteration, yielding logarithmic time complexity O(log_2 N).",
+    "marks": 2,
+    "difficulty": "Easy",
+    "is_important": true
+  },
+  {
+    "id": "q_dsa_02",
+    "course_id": "course_dsa_masterclass",
+    "module_id": "mod_dsa_1",
+    "type": "important_question",
+    "title": "Master Theorem for Divide & Conquer",
+    "text": "State the Master Theorem conditions and explain how it solves recurrence relations of the form T(n) = aT(n/b) + f(n).",
+    "options": [],
+    "correct_answer": "Master Theorem handles recurrences with 3 cases comparing n^(log_b a) with f(n).",
+    "explanation": "Critical B.Tech university semester exam question frequently tested in Design and Analysis of Algorithms (DAA).",
+    "marks": 5,
+    "difficulty": "Medium",
+    "is_important": true
+  }
+]

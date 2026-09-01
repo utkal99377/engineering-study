@@ -1,0 +1,138 @@
+[
+  {
+    "id": "mod_py_1",
+    "course_id": "course_python_101",
+    "title": "Module 1: Introduction to Python & Syntax",
+    "description": "Python installation, interpreter model, data types, and arithmetic operations.",
+    "order_no": 1,
+    "lectures": [
+      {
+        "id": "lec_py_101",
+        "module_id": "mod_py_1",
+        "title": "Lecture 1: Introduction & Python Runtime Model",
+        "order_no": 1,
+        "prerequisite_id": null,
+        "duration_min": 18,
+        "video_url": "https://www.youtube.com/embed/kqtD5dpn9C8",
+        "notes_markdown": "# Introduction to Python\n\nPython is a high-level, interpreted, general-purpose programming language created by **Guido van Rossum** in 1991.\n\n### Key Characteristics:\n- **Interpreted**: Code is translated into bytecode (.pyc) and executed by the Python Virtual Machine (PVM).\n- **Dynamically Typed**: Variable types are determined at runtime without explicit declarations.\n- **Multi-paradigm**: Supports Procedural, Object-Oriented, and Functional programming paradigms.\n\n```python\n# First Python program\ndef greet(name: str) -> str:\n    return f\"Welcome to B.Tech Engineering, {name}!\"\n\nprint(greet(\"Student\"))\n```\n\n### Key B.Tech Viva Questions:\n1. Why is Python called dynamically typed?\n2. What is the difference between compiler and interpreter in Python execution?",
+        "resources": [
+          {
+            "id": "res_py_101_1",
+            "title": "Python Execution Architecture Cheat Sheet (PDF)",
+            "type": "document",
+            "url": "https://docs.python.org/3/tutorial/index.html",
+            "access_level": "free"
+          }
+        ]
+      },
+      {
+        "id": "lec_py_102",
+        "module_id": "mod_py_1",
+        "title": "Lecture 2: Variables, Data Types & Type Casting",
+        "order_no": 2,
+        "prerequisite_id": "lec_py_101",
+        "duration_min": 22,
+        "video_url": "https://www.youtube.com/embed/_uQrJ0TkZlc",
+        "notes_markdown": "# Variables and Data Types in Python\n\n### Primitive Types in Python:\n- **int**: Arbitrary precision integers\n- **float**: Double-precision 64-bit IEEE 754 floating point\n- **bool**: `True` or `False` (subclass of int)\n- **str**: Unicode string literal (immutable)\n\n```python\nx = 42         # int\npi = 3.14159   # float\nis_valid = True # bool\nname = \"AI Engineer\" # str\n\n# Type casting\nage_str = \"21\"\nage_int = int(age_str)\nprint(f\"Next year age: {age_int + 1}\")\n```\n\n> [!NOTE]\n> In Python, strings and tuples are **immutable**. Once created, their memory buffer cannot be modified in-place.",
+        "resources": [
+          {
+            "id": "res_py_102_1",
+            "title": "Python Type Conversion Reference",
+            "type": "notes",
+            "url": "https://docs.python.org/3/library/stdtypes.html",
+            "access_level": "free"
+          }
+        ]
+      },
+      {
+        "id": "lec_py_103",
+        "module_id": "mod_py_1",
+        "title": "Lecture 3: Control Flow & Conditional Logic",
+        "order_no": 3,
+        "prerequisite_id": "lec_py_102",
+        "duration_min": 25,
+        "video_url": "https://www.youtube.com/embed/DPTrh0xT5lY",
+        "notes_markdown": "# Control Flow: If-Else, Loops, and Match-Case\n\nStructured decision making in Python using indentation blocks.\n\n### Syntax Example:\n```python\nmarks = 85\nif marks >= 90:\n    grade = \"O (Outstanding)\"\nelif marks >= 80:\n    grade = \"E (Excellent)\"\nelif marks >= 70:\n    grade = \"A (Very Good)\"\nelse:\n    grade = \"Pass\"\n\nprint(f\"Semester Result: {grade}\")\n```",
+        "resources": []
+      }
+    ]
+  },
+  {
+    "id": "mod_c_1",
+    "course_id": "course_c_foundations",
+    "title": "Module 1: Pointers & Low-Level Memory Management",
+    "description": "Virtual address space, pointer arithmetic, memory leaks, and malloc/calloc/free.",
+    "order_no": 1,
+    "lectures": [
+      {
+        "id": "lec_c_101",
+        "module_id": "mod_c_1",
+        "title": "Lecture 1: Memory Layout of a C Program",
+        "order_no": 1,
+        "prerequisite_id": null,
+        "duration_min": 30,
+        "video_url": "https://www.youtube.com/embed/zuegQmMdy8M",
+        "notes_markdown": "# Memory Layout of a C Program\n\nA typical memory representation of a compiled C program on Linux/x86:\n\n1. **Text Segment (Code)**: Machine instructions (Read-Only).\n2. **Initialized Data Segment (.data)**: Global and static variables with initial values.\n3. **Uninitialized Data Segment (.bss)**: Global and static variables initialized to zero by kernel.\n4. **Heap**: Dynamic memory allocation via `malloc()`, grows upward.\n5. **Stack**: Stack frames for function calls, local variables, return addresses; grows downward.\n\n```c\n#include <stdio.h>\n#include <stdlib.h>\n\nint global_var = 10; // .data\nint bss_var;         // .bss\n\nint main() {\n    int stack_var = 5; // Stack\n    int *heap_ptr = (int *)malloc(sizeof(int)); // Heap\n    *heap_ptr = 100;\n    \n    printf(\"Stack: %p | Heap: %p\\n\", (void*)&stack_var, (void*)heap_ptr);\n    free(heap_ptr);\n    return 0;\n}\n```",
+        "resources": [
+          {
+            "id": "res_c_101_1",
+            "title": "B.Tech Operating Systems & C Memory Map Diagram",
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=80",
+            "access_level": "free"
+          }
+        ]
+      },
+      {
+        "id": "lec_c_102",
+        "module_id": "mod_c_1",
+        "title": "Lecture 2: Pointer Arithmetic & Double Pointers",
+        "order_no": 2,
+        "prerequisite_id": "lec_c_101",
+        "duration_min": 28,
+        "video_url": "https://www.youtube.com/embed/zuegQmMdy8M",
+        "notes_markdown": "# Pointer Arithmetic & Multi-level Indirection\n\nPointers store memory addresses. When incrementing `ptr + 1`, the address advances by `sizeof(*ptr)` bytes.\n\n```c\nint arr[5] = {10, 20, 30, 40, 50};\nint *p = arr;\nprintf(\"Value at p+2: %d\\n\", *(p + 2)); // prints 30\n```",
+        "resources": []
+      }
+    ]
+  },
+  {
+    "id": "mod_dsa_1",
+    "course_id": "course_dsa_masterclass",
+    "title": "Module 1: Arrays, Two Pointers & Sliding Window",
+    "description": "Essential interview algorithmic patterns for competitive programming and tech placement tests.",
+    "order_no": 1,
+    "lectures": [
+      {
+        "id": "lec_dsa_101",
+        "module_id": "mod_dsa_1",
+        "title": "Lecture 1: Time & Space Complexity (Big-O Analysis)",
+        "order_no": 1,
+        "prerequisite_id": null,
+        "duration_min": 35,
+        "video_url": "https://www.youtube.com/embed/8hly31xKli0",
+        "notes_markdown": "# Asymptotic Notation and Big-O\n\n### Big-O Hierarchy:\n- $O(1)$ Constant time\n- $O(\\log N)$ Binary Search\n- $O(N)$ Linear Scan\n- $O(N \\log N)$ MergeSort / QuickSort\n- $O(N^2)$ Nested Loops\n- $O(2^N)$ Exponential Recursion\n\n```python\n# Binary Search O(log N)\ndef binary_search(arr, target):\n    low, high = 0, len(arr) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n```",
+        "resources": [
+          {
+            "id": "res_dsa_101_1",
+            "title": "Master Theorem Reference Guide",
+            "type": "document",
+            "url": "https://en.wikipedia.org/wiki/Master_theorem_(analysis_of_algorithms)",
+            "access_level": "premium"
+          }
+        ]
+      },
+      {
+        "id": "lec_dsa_102",
+        "module_id": "mod_dsa_1",
+        "title": "Lecture 2: Two Pointers Pattern & In-place Operations",
+        "order_no": 2,
+        "prerequisite_id": "lec_dsa_101",
+        "duration_min": 40,
+        "video_url": "https://www.youtube.com/embed/8hly31xKli0",
+        "notes_markdown": "# Two Pointers Technique\n\nOptimizing $O(N^2)$ brute force array problems down to $O(N)$ linear time by maintaining two cursor indices (e.g., left and right converging, or fast and slow pointers).",
+        "resources": []
+      }
+    ]
+  }
+]

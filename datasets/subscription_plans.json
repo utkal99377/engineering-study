@@ -1,0 +1,82 @@
+{
+  "plans": [
+    {
+      "id": "plan_free",
+      "name": "B.Tech Free Starter",
+      "slug": "free-tier",
+      "price": 0,
+      "currency": "INR",
+      "duration_days": 3650,
+      "description": "Essential foundational courses in Python, C & SQL with basic theory quizzes.",
+      "features": [
+        "Access to all Free B.Tech foundation courses",
+        "Public video lectures & curated notes",
+        "Standard MCQ practice with instant scoring",
+        "Community problem playground (5 submissions/day)"
+      ],
+      "is_active": true,
+      "is_popular": false
+    },
+    {
+      "id": "plan_pro_monthly",
+      "name": "B.Tech Pro Monthly",
+      "slug": "pro-monthly",
+      "price": 499,
+      "currency": "INR",
+      "duration_days": 30,
+      "description": "Full access to premium DSA, C++, Java, advanced coding problems, and mock tests.",
+      "features": [
+        "Unlimited access to ALL B.Tech courses & modules",
+        "Complete DSA Masterclass & Placement Accelerator",
+        "Unlimited sandbox code submissions & hidden test runs",
+        "Downloadable university lecture cheat sheets & notes",
+        "Priority doubt support & important exam questions",
+        "Course completion certificates"
+      ],
+      "is_active": true,
+      "is_popular": true
+    },
+    {
+      "id": "plan_pro_yearly",
+      "name": "Engineering Annual Pass",
+      "slug": "pro-yearly",
+      "price": 3499,
+      "currency": "INR",
+      "duration_days": 365,
+      "description": "Full 4-semester complete learning suite with campus interview prep bundle.",
+      "features": [
+        "All features of Pro Monthly for 365 days (Save 42%)",
+        "Full placement mock interview tests & company sheets",
+        "Full offline study kit & university syllabus mapping",
+        "Verified digital certificate of mastery",
+        "Direct instructor Q&A sessions"
+      ],
+      "is_active": true,
+      "is_popular": false
+    }
+  ],
+  "coupons": [
+    {
+      "id": "coup_btech50",
+      "code": "BTECH50",
+      "discount_type": "percentage",
+      "value": 50,
+      "max_discount": 1000,
+      "usage_limit": 500,
+      "used_count": 42,
+      "is_active": true,
+      "description": "50% off for all engineering students"
+    },
+    {
+      "id": "coup_freshers",
+      "code": "FRESHER100",
+      "discount_type": "flat",
+      "value": 100,
+      "max_discount": 100,
+      "usage_limit": 1000,
+      "used_count": 12,
+      "is_active": true,
+      "description": "Flat ₹100 discount on your first subscription"
+    }
+  ]
+}

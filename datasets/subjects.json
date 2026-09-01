@@ -1,0 +1,65 @@
+[
+  {
+    "id": "sub_python",
+    "name": "Python Programming",
+    "slug": "python",
+    "icon": "python",
+    "description": "Master Python from basics to advanced data structures, OOP, and algorithms for B.Tech CSE/IT.",
+    "order_no": 1,
+    "status": "active"
+  },
+  {
+    "id": "sub_c",
+    "name": "C Programming",
+    "slug": "c-programming",
+    "icon": "terminal",
+    "description": "Foundational programming in C: pointers, memory management, structures, and system concepts.",
+    "order_no": 2,
+    "status": "active"
+  },
+  {
+    "id": "sub_cpp",
+    "name": "C++ & OOP",
+    "slug": "cpp",
+    "icon": "cpu",
+    "description": "Object-Oriented Programming in C++, STL, templates, memory management, and competitive coding fundamentals.",
+    "order_no": 3,
+    "status": "active"
+  },
+  {
+    "id": "sub_java",
+    "name": "Java & Enterprise",
+    "slug": "java",
+    "icon": "coffee",
+    "description": "Core Java, JVM internals, Collections framework, Multithreading, and OOP design patterns.",
+    "order_no": 4,
+    "status": "active"
+  },
+  {
+    "id": "sub_dsa",
+    "name": "Data Structures & Algorithms (DSA)",
+    "slug": "dsa",
+    "icon": "network",
+    "description": "Comprehensive DSA: Arrays, Linked Lists, Trees, Graphs, Dynamic Programming, and interview patterns.",
+    "order_no": 5,
+    "status": "active"
+  },
+  {
+    "id": "sub_js",
+    "name": "JavaScript & Web Tech",
+    "slug": "javascript",
+    "icon": "code",
+    "description": "Modern ES6+, DOM manipulation, asynchronous programming, APIs, and full-stack fundamentals.",
+    "order_no": 6,
+    "status": "active"
+  },
+  {
+    "id": "sub_sql",
+    "name": "SQL & DBMS",
+    "slug": "sql-dbms",
+    "icon": "database",
+    "description": "Relational database concepts, normalization, complex queries, transactions, and indexing.",
+    "order_no": 7,
+    "status": "active"
+  }
+]
