@@ -166,10 +166,15 @@ export const CourseDetailPage = ({ courseId, onNavigate, onOpenSubscribe }) => {
                 <Crown className="w-4 h-4" />
                 <span>Unlock with B.Tech Pro Pass</span>
               </button>
+            ) : !course.modules || course.modules.length === 0 || course.modules.reduce((a, m) => a + (m.lectures?.length || 0), 0) === 0 ? (
+              <div className="text-xs text-indigo-300 font-mono flex items-center gap-1.5 bg-indigo-950/40 px-3 py-1.5 rounded-lg border border-indigo-500/20">
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <span>Curriculum modules are being scheduled by the instructor.</span>
+              </div>
             ) : (
               <div className="text-xs text-rose-400 flex items-center gap-1.5">
                 <ShieldAlert className="w-4 h-4" />
-                <span>Prerequisites not yet unlocked.</span>
+                <span>Complete previous lecture prerequisites to unlock.</span>
               </div>
             )}
           </div>
@@ -218,22 +223,31 @@ export const CourseDetailPage = ({ courseId, onNavigate, onOpenSubscribe }) => {
       {/* Tab Content: Syllabus / Modules */}
       {activeTab === 'syllabus' && (
         <div className="space-y-6">
-          {course.modules?.map((mod, modIdx) => (
-            <div key={mod.id} className="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-semibold">
-                    Module {modIdx + 1}
+          {(!course.modules || course.modules.length === 0) ? (
+            <div className="p-12 text-center glass-card rounded-2xl border border-slate-800 space-y-3">
+              <Layers className="w-12 h-12 text-slate-600 mx-auto" />
+              <h3 className="text-base font-bold text-white">Curriculum Modules Coming Soon</h3>
+              <p className="text-xs text-slate-400 max-w-md mx-auto">
+                The course structure has been registered. Course modules, sequential video lectures, and practice problems are being uploaded.
+              </p>
+            </div>
+          ) : (
+            course.modules.map((mod, modIdx) => (
+              <div key={mod.id} className="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-semibold">
+                      Module {modIdx + 1}
+                    </span>
+                    <h3 className="text-base sm:text-lg font-bold text-white mt-0.5">{mod.title}</h3>
+                    {mod.description && (
+                      <p className="text-xs text-slate-400 mt-1">{mod.description}</p>
+                    )}
+                  </div>
+                  <span className="text-xs text-slate-500 font-mono">
+                    {mod.lectures?.length || 0} Lectures
                   </span>
-                  <h3 className="text-base sm:text-lg font-bold text-white mt-0.5">{mod.title}</h3>
-                  {mod.description && (
-                    <p className="text-xs text-slate-400 mt-1">{mod.description}</p>
-                  )}
                 </div>
-                <span className="text-xs text-slate-500 font-mono">
-                  {mod.lectures?.length || 0} Lectures
-                </span>
-              </div>
 
               {/* Lecture list in Module */}
               <div className="divide-y divide-slate-800/80 border-t border-slate-800/80 pt-2">
@@ -326,7 +340,7 @@ export const CourseDetailPage = ({ courseId, onNavigate, onOpenSubscribe }) => {
                 })}
               </div>
             </div>
-          ))}
+          )))}
         </div>
       )}
 

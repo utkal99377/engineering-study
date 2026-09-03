@@ -43,6 +43,7 @@ def list_courses(
     access_type: Optional[str] = Query(None),  # free, premium
     level: Optional[str] = Query(None),        # Beginner, Intermediate, Advanced
     search: Optional[str] = Query(None),
+    limit: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional)
 ):
@@ -63,7 +64,11 @@ def list_courses(
             (Course.short_description.ilike(term))
         )
 
-    courses = query.order_by(Course.created_at.desc()).all()
+    query = query.order_by(Course.created_at.desc())
+    if limit and limit > 0:
+        query = query.limit(limit)
+
+    courses = query.all()
     results = []
 
     for c in courses:

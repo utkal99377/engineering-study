@@ -33,10 +33,18 @@ class Settings:
     
     @property
     def DATABASE_URL(self) -> str:
-        url = (self._db_url_raw or "").strip().strip("'").strip('"')
+        url = (os.getenv("DATABASE_URL") or self._db_url_raw or "").strip().strip("'").strip('"')
+        if not url:
+            return f"sqlite:///{str(BACKEND_DIR / 'btech_platform.db').replace(os.sep, '/')}"
         # Supabase/Heroku sometimes provide postgres:// which SQLAlchemy 2.0 requires as postgresql://
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
+        elif url.startswith("sqlite:///"):
+            sqlite_path = url.replace("sqlite:///", "")
+            # If relative path, anchor to BACKEND_DIR or WORKSPACE_DIR
+            if not os.path.isabs(sqlite_path):
+                target_file = BACKEND_DIR / os.path.basename(sqlite_path)
+                url = f"sqlite:///{str(target_file).replace(os.sep, '/')}"
         return url
 
     # SMTP & HTTPS Email Dispatch Settings

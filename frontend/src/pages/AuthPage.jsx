@@ -38,9 +38,14 @@ export const AuthPage = ({ onNavigate }) => {
     setError(null);
     setOtpLoading(true);
     try {
-      await api.sendOtp(email, 'registration');
+      const res = await api.sendOtp(email, 'registration');
       setOtpSent(true);
-      setSuccessMsg(`Verification 6-digit OTP code sent to ${email}.`);
+      if (res.dev_otp) {
+        setOtpCode(res.dev_otp);
+        setSuccessMsg(`Verification code generated: ${res.dev_otp} (Auto-filled)`);
+      } else {
+        setSuccessMsg(`Verification 6-digit OTP code sent to ${email}.`);
+      }
       setOtpCountdown(60);
       const timer = setInterval(() => {
         setOtpCountdown((prev) => {

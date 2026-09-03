@@ -1,7 +1,26 @@
-const BASE_HOST = (
-  import.meta.env.VITE_API_URL || 
-  (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://btech-learning-backend.onrender.com')
-).replace(/\/+$/, '');
+const getBaseHost = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+  }
+
+  const hostname = window.location.hostname;
+  const isLocalOrLAN = 
+    hostname === 'localhost' || 
+    hostname === '127.0.0.1' || 
+    hostname === '0.0.0.0' || 
+    hostname.startsWith('192.168.') || 
+    hostname.startsWith('10.') || 
+    hostname.startsWith('172.') || 
+    hostname.endsWith('.local');
+
+  if (isLocalOrLAN) {
+    return `http://${hostname}:8001`;
+  }
+
+  return 'https://btech-learning-backend.onrender.com';
+};
+
+const BASE_HOST = getBaseHost();
 const API_BASE = `${BASE_HOST}/api/v1`;
 
 class ApiService {
@@ -30,8 +49,7 @@ class ApiService {
     }
 
     const controller = new AbortController();
-    // Allow up to 45s for Render free-tier cold starts and SMTP email dispatches
-    const timeoutId = setTimeout(() => controller.abort(), options.timeout || 45000);
+    const timeoutId = setTimeout(() => controller.abort(), options.timeout || 30000);
 
     try {
       const response = await fetch(url, {
@@ -47,15 +65,25 @@ class ApiService {
         }
       }
 
-      const data = await response.json();
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (e) {
+        // Fallback for non-JSON error responses
+        data = { message: `Server returned status ${response.status}` };
+      }
+
       if (!response.ok) {
-        throw new Error(data.detail || data.message || 'API request failed');
+        throw new Error(data.detail || data.message || `API request failed with status ${response.status}`);
       }
       return data;
     } catch (error) {
       clearTimeout(timeoutId);
       if (error.name === 'AbortError' || error.message?.includes('abort')) {
-        throw new Error('Connecting to server... Render backend is waking up (free tier cold start). Please try again in 10 seconds.');
+        throw new Error(`Connection timed out to ${BASE_HOST}. Please ensure backend is running.`);
+      }
+      if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+        throw new Error(`Unable to connect to backend server at ${BASE_HOST}. Please ensure the backend server is running on port 8001.`);
       }
       console.error(`API Error on ${endpoint}:`, error);
       throw error;
@@ -226,8 +254,20 @@ class ApiService {
     return this.request('/admin/subjects', { method: 'POST', body: JSON.stringify(data) });
   }
 
+  updateSubject(id, data) {
+    return this.request(`/admin/subjects/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  deleteSubject(id) {
+    return this.request(`/admin/subjects/${id}`, { method: 'DELETE' });
+  }
+
   createCourse(data) {
     return this.request('/admin/courses', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  getAdminCourseCurriculum(courseId) {
+    return this.request(`/admin/courses/${courseId}/curriculum`);
   }
 
   deleteCourse(id) {

@@ -33,7 +33,16 @@ from app.api.v1.settings import router as settings_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Fast lightweight startup
+    # Automatic database initialization & dataset seeding on startup
+    try:
+        Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
+        try:
+            SeederService.seed_all(db, settings.DATASETS_PATH)
+        finally:
+            db.close()
+    except Exception as e:
+        print(f"Database initialization warning: {e}")
     yield
 
 app = FastAPI(
@@ -57,6 +66,7 @@ def health_check():
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

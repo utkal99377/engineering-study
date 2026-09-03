@@ -69,17 +69,39 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         "recent_submissions": sub_feed
     }
 
+import re
+
+def slugify(text: str) -> str:
+    text = (text or "").lower().strip()
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'[\s_-]+', '-', text)
+    text = re.sub(r'^-+|-+$', '', text)
+    return text or "item"
+
 # ==================== SUBJECT CRUD ====================
 
 @router.post("/subjects")
 def create_subject(data: Dict[str, Any], db: Session = Depends(get_db)):
+    if not data.get("name"):
+        raise HTTPException(status_code=400, detail="Subject name is required")
+    
+    base_slug = slugify(data.get("slug") or data["name"])
+    slug = base_slug
+    while db.query(Subject).filter(Subject.slug == slug).first():
+        slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+    order_no = data.get("order_no")
+    if not order_no:
+        max_order = db.query(Subject).order_by(Subject.order_no.desc()).first()
+        order_no = (max_order.order_no + 1) if max_order and max_order.order_no else 1
+
     sub = Subject(
         id=f"sub_{uuid.uuid4().hex[:8]}",
-        name=data["name"],
-        slug=data.get("slug", data["name"].lower().replace(" ", "-")),
+        name=data["name"].strip(),
+        slug=slug,
         icon=data.get("icon", "code"),
         description=data.get("description"),
-        order_no=data.get("order_no", 1),
+        order_no=order_no,
         status=data.get("status", "active")
     )
     db.add(sub)
@@ -94,8 +116,11 @@ def update_subject(subject_id: str, data: Dict[str, Any], db: Session = Depends(
         raise HTTPException(status_code=404, detail="Subject not found")
     for key, val in data.items():
         if hasattr(sub, key) and key != "id":
+            if key == "slug" and val:
+                val = slugify(val)
             setattr(sub, key, val)
     db.commit()
+    db.refresh(sub)
     return sub
 
 @router.delete("/subjects/{subject_id}")
@@ -111,24 +136,117 @@ def delete_subject(subject_id: str, db: Session = Depends(get_db)):
 
 @router.post("/courses")
 def create_course(data: Dict[str, Any], db: Session = Depends(get_db)):
+    if not data.get("title"):
+        raise HTTPException(status_code=400, detail="Course title is required")
+    
+    subject_id = data.get("subject_id")
+    if not subject_id:
+        first_sub = db.query(Subject).first()
+        if first_sub:
+            subject_id = first_sub.id
+        else:
+            # Create a default subject if none exist
+            new_sub = Subject(
+                id=f"sub_{uuid.uuid4().hex[:8]}",
+                name="Computer Science & Engineering",
+                slug="cse",
+                icon="code",
+                order_no=1,
+                status="active"
+            )
+            db.add(new_sub)
+            db.commit()
+            db.refresh(new_sub)
+            subject_id = new_sub.id
+
+    base_slug = slugify(data.get("slug") or data["title"])
+    slug = base_slug
+    while db.query(Course).filter(Course.slug == slug).first():
+        slug = f"{base_slug}-{uuid.uuid4().hex[:4]}"
+
+    # Handle tags (list or comma-separated string)
+    tags = data.get("tags", [])
+    if isinstance(tags, str):
+        tags = [t.strip() for t in tags.split(",") if t.strip()]
+
+    default_thumbnail = "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&auto=format&fit=crop&q=80"
+    thumbnail = data.get("thumbnail") or default_thumbnail
+
     course = Course(
         id=f"course_{uuid.uuid4().hex[:8]}",
-        subject_id=data["subject_id"],
-        title=data["title"],
-        slug=data.get("slug", data["title"].lower().replace(" ", "-")),
+        subject_id=subject_id,
+        title=data["title"].strip(),
+        slug=slug,
         short_description=data.get("short_description"),
         description=data.get("description"),
-        thumbnail=data.get("thumbnail", "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&auto=format&fit=crop&q=80"),
-        access_type=data.get("access_type", "free"),
+        thumbnail=thumbnail,
+        access_type=data.get("access_type", "free").lower(),
         level=data.get("level", "Beginner"),
-        duration_hours=data.get("duration_hours", 10),
-        tags=data.get("tags", []),
+        duration_hours=int(data.get("duration_hours") or 10),
+        tags=tags,
         status=data.get("status", "published")
     )
     db.add(course)
     db.commit()
     db.refresh(course)
     return course
+
+@router.get("/courses/{course_id}/curriculum")
+def get_admin_course_curriculum(course_id: str, db: Session = Depends(get_db)):
+    """Retrieve full course curriculum hierarchy for admin editing."""
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    modules_data = []
+    for mod in course.modules:
+        lectures_data = []
+        for lec in mod.lectures:
+            lectures_data.append({
+                "id": lec.id,
+                "module_id": lec.module_id,
+                "title": lec.title,
+                "order_no": lec.order_no,
+                "prerequisite_id": lec.prerequisite_id,
+                "duration_min": lec.duration_min,
+                "video_url": lec.video_url,
+                "notes_markdown": lec.notes_markdown,
+                "status": lec.status,
+                "resources": [
+                    {
+                        "id": r.id,
+                        "title": r.title,
+                        "type": r.type,
+                        "url": r.url,
+                        "access_level": r.access_level
+                    } for r in lec.resources
+                ]
+            })
+        modules_data.append({
+            "id": mod.id,
+            "course_id": mod.course_id,
+            "title": mod.title,
+            "description": mod.description,
+            "order_no": mod.order_no,
+            "lectures": lectures_data
+        })
+        
+    return {
+        "id": course.id,
+        "subject_id": course.subject_id,
+        "title": course.title,
+        "slug": course.slug,
+        "short_description": course.short_description,
+        "description": course.description,
+        "thumbnail": course.thumbnail,
+        "access_type": course.access_type,
+        "level": course.level,
+        "duration_hours": course.duration_hours,
+        "tags": course.tags or [],
+        "status": course.status,
+        "subject_name": course.subject.name if course.subject else None,
+        "modules": modules_data
+    }
 
 @router.put("/courses/{course_id}")
 def update_course(course_id: str, data: Dict[str, Any], db: Session = Depends(get_db)):
@@ -137,8 +255,15 @@ def update_course(course_id: str, data: Dict[str, Any], db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Course not found")
     for key, val in data.items():
         if hasattr(course, key) and key != "id":
+            if key == "tags" and isinstance(val, str):
+                val = [t.strip() for t in val.split(",") if t.strip()]
+            if key == "slug" and val:
+                val = slugify(val)
+            if key == "duration_hours" and val is not None:
+                val = int(val)
             setattr(course, key, val)
     db.commit()
+    db.refresh(course)
     return course
 
 @router.delete("/courses/{course_id}")
@@ -154,12 +279,20 @@ def delete_course(course_id: str, db: Session = Depends(get_db)):
 
 @router.post("/modules")
 def create_module(data: Dict[str, Any], db: Session = Depends(get_db)):
+    if not data.get("course_id") or not data.get("title"):
+        raise HTTPException(status_code=400, detail="course_id and title are required")
+    
+    order_no = data.get("order_no")
+    if not order_no or int(order_no) <= 0:
+        last_mod = db.query(Module).filter(Module.course_id == data["course_id"]).order_by(Module.order_no.desc()).first()
+        order_no = (last_mod.order_no + 1) if last_mod and last_mod.order_no else 1
+
     mod = Module(
         id=f"mod_{uuid.uuid4().hex[:8]}",
         course_id=data["course_id"],
-        title=data["title"],
+        title=data["title"].strip(),
         description=data.get("description"),
-        order_no=data.get("order_no", 1)
+        order_no=int(order_no)
     )
     db.add(mod)
     db.commit()
@@ -173,6 +306,8 @@ def update_module(module_id: str, data: Dict[str, Any], db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Module not found")
     for key, val in data.items():
         if hasattr(mod, key) and key != "id":
+            if key == "order_no" and val is not None:
+                val = int(val)
             setattr(mod, key, val)
     db.commit()
     db.refresh(mod)
@@ -189,13 +324,21 @@ def delete_module(module_id: str, db: Session = Depends(get_db)):
 
 @router.post("/lectures")
 def create_lecture(data: Dict[str, Any], db: Session = Depends(get_db)):
+    if not data.get("module_id") or not data.get("title"):
+        raise HTTPException(status_code=400, detail="module_id and title are required")
+    
+    order_no = data.get("order_no")
+    if not order_no or int(order_no) <= 0:
+        last_lec = db.query(Lecture).filter(Lecture.module_id == data["module_id"]).order_by(Lecture.order_no.desc()).first()
+        order_no = (last_lec.order_no + 1) if last_lec and last_lec.order_no else 1
+
     lec = Lecture(
         id=f"lec_{uuid.uuid4().hex[:8]}",
         module_id=data["module_id"],
-        title=data["title"],
-        order_no=data.get("order_no", 1),
-        prerequisite_id=data.get("prerequisite_id"),
-        duration_min=data.get("duration_min", 20),
+        title=data["title"].strip(),
+        order_no=int(order_no),
+        prerequisite_id=data.get("prerequisite_id") or None,
+        duration_min=int(data.get("duration_min") or 20),
         video_url=data.get("video_url"),
         notes_markdown=data.get("notes_markdown", ""),
         status=data.get("status", "active")
@@ -206,15 +349,17 @@ def create_lecture(data: Dict[str, Any], db: Session = Depends(get_db)):
 
     # Add any resources attached
     for r in data.get("resources", []):
-        db.add(Resource(
-            id=f"res_{uuid.uuid4().hex[:8]}",
-            lecture_id=lec.id,
-            title=r["title"],
-            type=r.get("type", "notes"),
-            url=r["url"],
-            access_level=r.get("access_level", "free")
-        ))
+        if r.get("title") and r.get("url"):
+            db.add(Resource(
+                id=f"res_{uuid.uuid4().hex[:8]}",
+                lecture_id=lec.id,
+                title=r["title"],
+                type=r.get("type", "notes"),
+                url=r["url"],
+                access_level=r.get("access_level", "free")
+            ))
     db.commit()
+    db.refresh(lec)
     return lec
 
 @router.put("/lectures/{lecture_id}")
@@ -224,8 +369,15 @@ def update_lecture(lecture_id: str, data: Dict[str, Any], db: Session = Depends(
         raise HTTPException(status_code=404, detail="Lecture not found")
     for key, val in data.items():
         if hasattr(lec, key) and key not in ["id", "resources"]:
+            if key == "order_no" and val is not None:
+                val = int(val)
+            if key == "duration_min" and val is not None:
+                val = int(val)
+            if key == "prerequisite_id" and not val:
+                val = None
             setattr(lec, key, val)
     db.commit()
+    db.refresh(lec)
     return lec
 
 @router.delete("/lectures/{lecture_id}")
