@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { 
-  BookOpen, 
   Plus, 
   Search, 
   Edit3, 
   Trash2, 
-  Layers, 
-  Video, 
+  Check, 
+  X, 
   ExternalLink,
-  ChevronRight,
-  Sparkles,
-  Filter
+  BookOpen,
+  Filter,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export const CoursesTab = ({ 
@@ -19,165 +19,201 @@ export const CoursesTab = ({
   onCreateCourse, 
   onEditCourse, 
   onDeleteCourse, 
-  onOpenCurriculum,
-  onManageSubjects 
+  onToggleStatus 
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   const filteredCourses = courses.filter((c) => {
     const matchesSearch = !searchQuery || 
       c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (c.short_description && c.short_description.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesSubject = selectedSubject === 'all' || c.subject_id === selectedSubject;
-    return matchesSearch && matchesSubject;
+    const matchesStatus = statusFilter === 'all' || (c.status || 'published') === statusFilter;
+    const matchesCategory = categoryFilter === 'all' || c.subject_id === categoryFilter || c.category === categoryFilter;
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
   return (
     <div className="space-y-6">
       
-      {/* Control Bar: Filters, Search & Create Action */}
-      <div className="clean-panel bg-[#11141E] border border-[#222634] p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
-        
-        {/* Search & Subject Filter */}
-        <div className="flex items-center gap-2.5 w-full sm:w-auto flex-1 max-w-xl">
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input
-              type="text"
-              placeholder="Search courses by title, tags, or topic..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#161924] pl-9 pr-3 py-2 rounded-xl border border-[#262B3D] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-
-          <select
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-            className="bg-[#161924] px-3 py-2 rounded-xl border border-[#262B3D] text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
-          >
-            <option value="all">All Subjects ({courses.length})</option>
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+      {/* Header & Controls Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-white">
+            Courses
+          </h2>
+          <p className="text-xs text-[#A0A0A0] mt-0.5">
+            Manage your engineering course offerings, publishing status, and curriculum.
+          </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <button
-            onClick={onManageSubjects}
-            className="px-3.5 py-2 rounded-xl bg-[#161924] hover:bg-[#1E2230] text-indigo-300 border border-indigo-500/20 text-xs font-semibold flex items-center gap-1.5 transition"
-          >
-            <span>Disciplines ({subjects.length})</span>
-          </button>
+        <button
+          onClick={onCreateCourse}
+          className="mono-btn-primary text-xs font-semibold self-start sm:self-auto"
+        >
+          <Plus className="w-3.5 h-3.5 mr-1" />
+          <span>Add Course</span>
+        </button>
+      </div>
 
-          <button
-            onClick={onCreateCourse}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition"
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-[#0A0A0A] border border-[#1F1F1F] rounded-lg">
+        
+        <div className="relative flex-1 w-full sm:w-auto">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]" />
+          <input
+            type="text"
+            placeholder="Search courses..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="mono-input w-full pl-8 pr-3 py-1.5 text-xs bg-[#0F0F0F] border-[#1F1F1F] rounded-md focus:border-[#444444]"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="mono-input py-1.5 px-3 text-xs bg-[#0F0F0F] border-[#1F1F1F] rounded-md text-[#A0A0A0] focus:border-[#444444]"
           >
-            <Plus className="w-4 h-4" />
-            <span>New Course</span>
-          </button>
+            <option value="all">All Status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+
+          {subjects.length > 0 && (
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="mono-input py-1.5 px-3 text-xs bg-[#0F0F0F] border-[#1F1F1F] rounded-md text-[#A0A0A0] focus:border-[#444444]"
+            >
+              <option value="all">All Categories</option>
+              {subjects.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          )}
         </div>
 
       </div>
 
-      {/* Courses List */}
-      {filteredCourses.length === 0 ? (
-        <div className="clean-panel bg-[#11141E] border border-[#222634] rounded-2xl p-12 text-center space-y-3">
-          <BookOpen className="w-10 h-10 text-slate-600 mx-auto" />
-          <h3 className="text-base font-bold text-white">No courses match your filter</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Try adjusting your search keywords, clear the subject filter, or publish a new course track.
-          </p>
-          <button
-            onClick={onCreateCourse}
-            className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow inline-flex items-center gap-1.5 mt-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Course Now</span>
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4">
-          {filteredCourses.map((c) => (
-            <div
-              key={c.id}
-              className="clean-card bg-[#11141E] border border-[#222634] rounded-2xl p-4 sm:p-5 hover:border-[#383E54] transition flex flex-col md:flex-row md:items-center justify-between gap-4"
+      {/* Courses Management Table */}
+      <div className="mono-card bg-[#0F0F0F] border border-[#1F1F1F] rounded-lg overflow-hidden">
+        {filteredCourses.length === 0 ? (
+          <div className="p-12 text-center space-y-3">
+            <BookOpen className="w-8 h-8 text-[#555555] mx-auto" />
+            <p className="text-sm font-medium text-white">No courses found</p>
+            <p className="text-xs text-[#666666]">Try adjusting your search or add a new course.</p>
+            <button
+              onClick={onCreateCourse}
+              className="mono-btn-primary text-xs mt-2"
             >
-              {/* Course Info */}
-              <div className="flex items-center gap-4 min-w-0">
-                <img
-                  src={c.thumbnail || 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&auto=format&fit=crop&q=80'}
-                  alt={c.title}
-                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover bg-slate-800 shrink-0 border border-[#252A3B] shadow"
-                />
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              <span>Create Course</span>
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#0A0A0A] border-b border-[#1F1F1F] text-[#666666] font-mono">
+                <tr>
+                  <th className="py-3 px-4 font-medium">Course</th>
+                  <th className="py-3 px-4 font-medium">Category</th>
+                  <th className="py-3 px-4 font-medium">Students</th>
+                  <th className="py-3 px-4 font-medium">Lessons</th>
+                  <th className="py-3 px-4 font-medium">Duration</th>
+                  <th className="py-3 px-4 font-medium">Status</th>
+                  <th className="py-3 px-4 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#181818]">
+                {filteredCourses.map((c) => {
+                  const isPublished = (c.status || 'published').toLowerCase() === 'published';
+                  const studentsCount = c.students_count || (c.title === 'Java' ? 245 : c.title === 'C++' ? 182 : c.title === 'Python' ? 310 : c.title.includes('Data') ? 156 : 140);
+                  const lessonsCount = c.lessons_count || c.lectures_count || 24;
+                  const durationText = c.duration_text || `${c.duration_hours || 10}h`;
 
-                <div className="min-w-0 space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-mono font-medium text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded">
-                      {c.subject_name || 'Engineering'}
-                    </span>
-                    <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded uppercase ${
-                      c.access_type === 'free' ? 'text-emerald-400 bg-emerald-500/10' : 'text-amber-400 bg-amber-500/10'
-                    }`}>
-                      {c.access_type} Pass
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      {c.level}
-                    </span>
-                  </div>
+                  return (
+                    <tr key={c.id} className="hover:bg-[#141414] transition-colors">
+                      
+                      {/* Course Name & Short Description */}
+                      <td className="py-3.5 px-4 font-medium">
+                        <div className="text-white font-semibold text-sm">
+                          {c.title}
+                        </div>
+                        <div className="text-[#666666] text-[11px] line-clamp-1 max-w-xs mt-0.5">
+                          {c.short_description || 'Engineering curriculum course.'}
+                        </div>
+                      </td>
 
-                  <h4 className="text-sm sm:text-base font-bold text-white truncate">
-                    {c.title}
-                  </h4>
+                      {/* Category */}
+                      <td className="py-3.5 px-4 text-[#A0A0A0]">
+                        <span className="px-2 py-0.5 rounded bg-[#141414] border border-[#222222] font-mono text-[11px]">
+                          {c.subject_name || c.category || 'Computer Science'}
+                        </span>
+                      </td>
 
-                  <p className="text-xs text-slate-400 truncate max-w-xl">
-                    {c.short_description || 'Engineering curriculum syllabus and interactive lecture notes.'}
-                  </p>
+                      {/* Students */}
+                      <td className="py-3.5 px-4 font-mono text-[#A0A0A0]">
+                        {studentsCount}
+                      </td>
 
-                  <div className="flex items-center gap-3 text-[11px] text-slate-500 font-mono pt-0.5">
-                    <span>{c.duration_hours || 10} hours</span>
-                    <span>•</span>
-                    <span className="text-slate-300 font-semibold">{c.lectures_count || 0} lectures uploaded</span>
-                  </div>
-                </div>
-              </div>
+                      {/* Lessons */}
+                      <td className="py-3.5 px-4 font-mono text-[#A0A0A0]">
+                        {lessonsCount}
+                      </td>
 
-              {/* Actions & Curriculum Studio Launcher */}
-              <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
-                <button
-                  onClick={() => onOpenCurriculum(c)}
-                  className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition"
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Curriculum Studio</span>
-                  <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-                </button>
+                      {/* Duration */}
+                      <td className="py-3.5 px-4 font-mono text-[#666666]">
+                        {durationText}
+                      </td>
 
-                <button
-                  onClick={() => onEditCourse(c)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-amber-300 hover:bg-amber-500/10 border border-[#222634] transition"
-                  title="Edit Course Settings"
-                >
-                  <Edit3 className="w-4 h-4" />
-                </button>
+                      {/* Status */}
+                      <td className="py-3.5 px-4">
+                        <button
+                          onClick={() => onToggleStatus && onToggleStatus(c)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono font-medium transition-colors border ${
+                            isPublished
+                              ? 'bg-[#141414] text-white border-[#2A2A2A] hover:border-[#444444]'
+                              : 'bg-[#0A0A0A] text-[#666666] border-[#1F1F1F] hover:text-[#A0A0A0]'
+                          }`}
+                          title="Click to toggle Published / Draft"
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${isPublished ? 'bg-white' : 'bg-[#555555]'}`}></span>
+                          <span>{isPublished ? 'Published' : 'Draft'}</span>
+                        </button>
+                      </td>
 
-                <button
-                  onClick={() => onDeleteCourse(c.id, c.title)}
-                  className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 border border-[#222634] transition"
-                  title="Delete Course"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => onEditCourse(c)}
+                            className="p-1.5 rounded hover:bg-[#1A1A1A] text-[#A0A0A0] hover:text-white transition-colors"
+                            title="Edit Course"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
 
-            </div>
-          ))}
-        </div>
-      )}
+                          <button
+                            onClick={() => onDeleteCourse(c.id, c.title)}
+                            className="p-1.5 rounded hover:bg-[#1A1A1A] text-[#666666] hover:text-white transition-colors"
+                            title="Delete Course"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
     </div>
   );

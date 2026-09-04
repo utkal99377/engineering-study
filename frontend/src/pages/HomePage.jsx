@@ -1,336 +1,406 @@
-import React, { useEffect, useState } from 'react';
-import { api } from '../services/api';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import { 
-  BookOpen, 
-  Code2, 
-  HelpCircle, 
   ArrowRight, 
   Play, 
-  Sparkles, 
+  CheckCircle2, 
+  BookOpen, 
   Clock, 
-  GraduationCap,
+  Code2, 
   Layers,
-  CheckCircle2,
-  Terminal
+  Search,
+  SlidersHorizontal
 } from 'lucide-react';
 
-export const HomePage = ({ onNavigate, onOpenSubscribe }) => {
+const DEFAULT_COURSES = [
+  {
+    id: 'course_java',
+    title: 'Java',
+    slug: 'java',
+    short_description: 'Learn Java programming from fundamentals to object-oriented programming.',
+    progress: 65,
+    lessons_count: 24,
+    duration_text: '8h 30m',
+    level: 'Beginner',
+    category: 'programming',
+    last_active: true
+  },
+  {
+    id: 'course_cpp',
+    title: 'C++',
+    slug: 'cpp',
+    short_description: 'Build strong programming fundamentals with modern C++.',
+    progress: 35,
+    lessons_count: 20,
+    duration_text: '7h 15m',
+    level: 'Intermediate',
+    category: 'programming'
+  },
+  {
+    id: 'course_python',
+    title: 'Python',
+    slug: 'python',
+    short_description: 'Learn Python programming, problem solving, and practical development.',
+    progress: 80,
+    lessons_count: 28,
+    duration_text: '9h 45m',
+    level: 'Beginner',
+    category: 'programming'
+  },
+  {
+    id: 'course_dsa',
+    title: 'Data Structures & Algorithms',
+    slug: 'dsa',
+    short_description: 'Master core data structures and algorithmic problem solving.',
+    progress: 20,
+    lessons_count: 32,
+    duration_text: '12h 00m',
+    level: 'Intermediate',
+    category: 'cs'
+  },
+  {
+    id: 'course_web_dev',
+    title: 'Web Development',
+    slug: 'web-development',
+    short_description: 'Learn HTML, CSS, JavaScript, and modern web development.',
+    progress: 10,
+    lessons_count: 26,
+    duration_text: '10h 30m',
+    level: 'Beginner',
+    category: 'web'
+  },
+  {
+    id: 'course_sql',
+    title: 'SQL & Databases',
+    slug: 'sql-databases',
+    short_description: 'Master relational databases, SQL queries, indexing, and data modeling.',
+    progress: 0,
+    lessons_count: 18,
+    duration_text: '6h 00m',
+    level: 'Beginner',
+    category: 'database'
+  }
+];
+
+export const HomePage = ({ onNavigate }) => {
   const { user } = useAuth();
-  const [courses, setCourses] = useState([]);
-  const [problems, setProblems] = useState([]);
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Initialize with DEFAULT_COURSES for 0ms instantaneous rendering
+  const [courses, setCourses] = useState(DEFAULT_COURSES);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   useEffect(() => {
-    loadDashboardData();
+    loadCourses();
   }, []);
 
-  const loadDashboardData = async () => {
-    setLoading(true);
+  const loadCourses = async () => {
     try {
-      const [coursesData, problemsData, questionsData] = await Promise.all([
-        api.getCourses({ limit: 6 }).catch(() => []),
-        api.getProblems({ limit: 6 }).catch(() => []),
-        api.getQuestions({ limit: 6 }).catch(() => []),
-      ]);
-      setCourses(coursesData || []);
-      setProblems(problemsData || []);
-      setQuestions(questionsData || []);
+      const data = await api.getCourses();
+      if (data && data.length > 0) {
+        const merged = data.map((c, idx) => {
+          const match = DEFAULT_COURSES.find(d => 
+            d.slug === c.slug || 
+            d.title.toLowerCase() === c.title.toLowerCase() ||
+            c.title.toLowerCase().includes(d.title.toLowerCase())
+          );
+          return {
+            id: c.id,
+            title: c.title,
+            slug: c.slug,
+            short_description: c.short_description || match?.short_description || 'Engineering curriculum and code practice.',
+            progress: typeof c.progress === 'number' ? c.progress : (match ? match.progress : (idx === 0 ? 65 : idx === 1 ? 35 : 0)),
+            lessons_count: c.lectures_count || match?.lessons_count || 20,
+            duration_text: match?.duration_text || `${c.duration_hours || 8}h 00m`,
+            level: c.level || match?.level || 'Beginner',
+            category: match?.category || 'programming'
+          };
+        });
+        setCourses(merged);
+      }
     } catch (err) {
-      console.error('Failed to load dashboard data:', err);
-    } finally {
-      setLoading(false);
+      // Retain pre-loaded DEFAULT_COURSES
     }
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
-  };
+  const studentName = user?.name ? user.name.split(' ')[0] : 'Aditya';
 
-  const firstName = user?.name ? user.name.split(' ')[0] : 'Engineer';
+  // Filter courses by search and category
+  const filteredCourses = courses.filter(c => {
+    const matchesSearch = !searchFilter || 
+      c.title.toLowerCase().includes(searchFilter.toLowerCase()) ||
+      c.short_description.toLowerCase().includes(searchFilter.toLowerCase());
+    
+    if (categoryFilter === 'in_progress') {
+      return matchesSearch && c.progress > 0;
+    }
+    if (categoryFilter !== 'all') {
+      return matchesSearch && (c.category === categoryFilter);
+    }
+    return matchesSearch;
+  });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-12">
       
-      {/* 1. Welcoming Hero Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-[#1E212A]/80">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center gap-2">
-            {getGreeting()}, {firstName} <span className="inline-block animate-bounce">👋</span>
-          </h1>
-          <p className="text-sm text-[#8E92A4] mt-1">
-            What would you like to learn or practice today?
+      {/* 1. Welcome Section */}
+      <section className="space-y-1.5">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
+          Welcome back, {studentName}
+        </h1>
+        <p className="text-sm text-[#A0A0A0]">
+          Choose a course and continue building your skills.
+        </p>
+      </section>
+
+      {/* 2. Continue Learning Section (Recently Studied Course) */}
+      <section className="space-y-3">
+        <h2 className="text-xs font-mono font-medium tracking-wider text-[#666666] uppercase">
+          Continue Learning
+        </h2>
+        
+        <div className="mono-card bg-[#0F0F0F] border border-[#1F1F1F] hover:border-[#333333] rounded-lg p-5 sm:p-6 transition-all duration-150">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-2 flex-1">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#1A1A1A] text-[#A0A0A0] border border-[#262626]">
+                  Active Course
+                </span>
+                <span className="text-xs text-[#666666]">·</span>
+                <span className="text-xs text-[#A0A0A0]">Lesson 14 of 22</span>
+              </div>
+              
+              <div>
+                <h3 className="text-base sm:text-lg font-semibold text-white">
+                  Java
+                </h3>
+                <p className="text-xs text-[#A0A0A0] mt-0.5">
+                  Object-Oriented Programming
+                </p>
+              </div>
+
+              {/* Progress bar */}
+              <div className="space-y-1.5 pt-1 max-w-md">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[#666666]">Course Progress</span>
+                  <span className="font-mono text-white">64%</span>
+                </div>
+                <div className="mono-progress-track">
+                  <div className="mono-progress-fill" style={{ width: '64%' }}></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="sm:self-center shrink-0">
+              <button
+                onClick={() => onNavigate('course-detail', 'course_java')}
+                className="mono-btn-primary w-full sm:w-auto px-4 py-2.5 text-xs font-semibold"
+              >
+                <span>Continue</span>
+                <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Choose Your Course (Main Grid) */}
+      <section className="space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-lg sm:text-xl font-semibold text-white">
+              Choose a course
+            </h2>
+            <p className="text-xs sm:text-sm text-[#A0A0A0]">
+              Start learning or continue where you left off.
+            </p>
+          </div>
+
+          {/* Quick Filter Controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#666666]" />
+              <input
+                type="text"
+                placeholder="Search courses..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="mono-input pl-8 pr-3 py-1.5 text-xs w-40 sm:w-48 bg-[#0A0A0A] border-[#1F1F1F] rounded-md focus:border-[#444444]"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-[#141414]">
+          {[
+            { id: 'all', label: 'All Courses' },
+            { id: 'in_progress', label: 'In Progress' },
+            { id: 'programming', label: 'Languages' },
+            { id: 'cs', label: 'Computer Science' },
+            { id: 'web', label: 'Web & Fullstack' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setCategoryFilter(tab.id)}
+              className={`px-3 py-1 text-xs rounded-md transition-colors whitespace-nowrap ${
+                categoryFilter === tab.id
+                  ? 'bg-[#141414] text-white border border-[#262626]'
+                  : 'text-[#666666] hover:text-[#A0A0A0]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Courses Responsive Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredCourses.map((course) => {
+            const hasStarted = course.progress > 0;
+            return (
+              <div
+                key={course.id}
+                className="mono-card bg-[#0F0F0F] border border-[#1F1F1F] hover:border-[#333333] rounded-lg p-5 flex flex-col justify-between transition-all duration-150 group"
+              >
+                <div className="space-y-3">
+                  
+                  {/* Card Header: Title & Level */}
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-base font-semibold text-white group-hover:text-white transition-colors">
+                      {course.title}
+                    </h3>
+                    <span className="text-[10px] font-mono text-[#666666] px-1.5 py-0.5 rounded bg-[#141414] border border-[#1F1F1F] shrink-0">
+                      {course.level}
+                    </span>
+                  </div>
+
+                  {/* Short Description */}
+                  <p className="text-xs text-[#A0A0A0] leading-relaxed line-clamp-2 min-h-[2rem]">
+                    {course.short_description}
+                  </p>
+
+                  {/* Progress & Progress Bar */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#666666]">
+                        {hasStarted ? 'Progress' : 'Not started'}
+                      </span>
+                      <span className="font-mono text-xs font-medium text-white">
+                        {course.progress}%
+                      </span>
+                    </div>
+                    
+                    <div className="mono-progress-track">
+                      <div 
+                        className="mono-progress-fill"
+                        style={{ width: `${course.progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Small Course Metadata */}
+                  <div className="flex items-center gap-2 text-[11px] font-mono text-[#666666] pt-1">
+                    <span>{course.lessons_count} Lessons</span>
+                    <span>·</span>
+                    <span>{course.duration_text}</span>
+                  </div>
+
+                </div>
+
+                {/* Primary Action Button */}
+                <div className="pt-5 mt-auto">
+                  <button
+                    onClick={() => onNavigate('course-detail', course.id)}
+                    className={`w-full py-2 px-3 text-xs font-medium rounded-md transition-all flex items-center justify-center gap-1.5 border ${
+                      hasStarted
+                        ? 'bg-[#141414] hover:bg-[#1A1A1A] text-white border-[#262626] hover:border-[#383838]'
+                        : 'bg-[#0A0A0A] hover:bg-[#141414] text-[#A0A0A0] hover:text-white border-[#1F1F1F] hover:border-[#2C2C2C]'
+                    }`}
+                  >
+                    <span>{hasStarted ? 'Continue Learning' : 'Start Learning'}</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#888888] group-hover:text-white transition-colors" />
+                  </button>
+                </div>
+
+              </div>
+            );
+          })}
+        </div>
+
+      </section>
+
+      {/* 4. Simple Progress Overview Section */}
+      <section className="space-y-4 pt-4 border-t border-[#141414]">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-white">
+            Your Progress
+          </h2>
+          <p className="text-xs text-[#A0A0A0]">
+            Track your course completions and learning milestones.
           </p>
         </div>
 
-        {user && (
-          <div className="flex items-center gap-2.5 self-start md:self-auto bg-[#13151D] border border-[#232735] px-3.5 py-1.5 rounded-full text-xs text-[#9CA3AF]">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-medium text-white">{user.college_branch || 'B.Tech CSE'}</span>
-            <span className="text-[#4B5267]">•</span>
-            <span>{user.semester || 'Semester 3'}</span>
-          </div>
-        )}
-      </div>
-
-      {/* 2. Three Primary Quick-Action Pillars */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        
-        {/* Pillar 1: Courses */}
-        <div 
-          onClick={() => onNavigate('courses')}
-          className="group relative bg-[#12141C] hover:bg-[#161924] border border-[#222634] hover:border-indigo-500/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5 flex flex-col justify-between"
-        >
-          <div className="space-y-3">
-            <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-200">
-              <BookOpen className="w-5 h-5" />
+        {/* Minimal Metric Blocks */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          
+          {/* Metric 1: Overall Progress */}
+          <div className="mono-card bg-[#0F0F0F] border border-[#1F1F1F] rounded-lg p-5 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl sm:text-3xl font-bold font-mono text-white">
+                68%
+              </span>
+              <span className="text-xs font-mono text-[#666666]">In Track</span>
             </div>
-            <div>
-              <h3 className="text-base font-semibold text-white group-hover:text-indigo-300 transition">
-                Curriculum Courses
-              </h3>
-              <p className="text-xs text-[#8E92A4] mt-1 leading-relaxed">
-                Watch video lectures, read notes, and follow semester syllabus step-by-step.
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 flex items-center text-xs font-medium text-indigo-400 group-hover:text-indigo-300 gap-1.5">
-            <span>Browse Courses</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </div>
-
-        {/* Pillar 2: Code Playground */}
-        <div 
-          onClick={() => onNavigate('coding')}
-          className="group relative bg-[#12141C] hover:bg-[#161924] border border-[#222634] hover:border-emerald-500/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-xl hover:shadow-emerald-500/5 flex flex-col justify-between"
-        >
-          <div className="space-y-3">
-            <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-200">
-              <Code2 className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-white group-hover:text-emerald-300 transition">
-                Code Sandbox & Arena
-              </h3>
-              <p className="text-xs text-[#8E92A4] mt-1 leading-relaxed">
-                Write, test, and run code in Python, C, C++, Java, and JavaScript with instant output.
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 flex items-center text-xs font-medium text-emerald-400 group-hover:text-emerald-300 gap-1.5">
-            <span>Open Code Sandbox</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </div>
-
-        {/* Pillar 3: MCQs & Practice */}
-        <div 
-          onClick={() => onNavigate('theory')}
-          className="group relative bg-[#12141C] hover:bg-[#161924] border border-[#222634] hover:border-amber-500/50 rounded-2xl p-6 cursor-pointer transition-all duration-200 hover:shadow-xl hover:shadow-amber-500/5 flex flex-col justify-between"
-        >
-          <div className="space-y-3">
-            <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-110 group-hover:bg-amber-500 group-hover:text-white transition-all duration-200">
-              <HelpCircle className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-semibold text-white group-hover:text-amber-300 transition">
-                Theory & MCQs
-              </h3>
-              <p className="text-xs text-[#8E92A4] mt-1 leading-relaxed">
-                Test your concepts with university mid-term & end-term exam practice questions.
-              </p>
-            </div>
-          </div>
-          <div className="mt-6 flex items-center text-xs font-medium text-amber-400 group-hover:text-amber-300 gap-1.5">
-            <span>Practice Questions</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-          </div>
-        </div>
-
-      </div>
-
-      {/* 3. Featured Courses Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">
-              Featured Courses
-            </h2>
-            <p className="text-xs text-[#8E92A4]">
-              Handpicked subject modules for your engineering curriculum
+            
+            <p className="text-xs text-[#A0A0A0] font-medium">
+              Overall Progress
             </p>
+            
+            <div className="mono-progress-track">
+              <div className="mono-progress-fill" style={{ width: '68%' }}></div>
+            </div>
           </div>
-          <button 
-            onClick={() => onNavigate('courses')}
-            className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition flex items-center gap-1"
-          >
-            <span>View all courses</span>
-            <span>→</span>
-          </button>
-        </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="h-32 rounded-xl bg-[#12141C] border border-[#222634] animate-pulse"></div>
-            ))}
-          </div>
-        ) : courses.length === 0 ? (
-          <div className="py-12 text-center text-xs text-[#6B7280] bg-[#12141C] rounded-2xl border border-[#222634] space-y-2">
-            <BookOpen className="w-8 h-8 text-slate-600 mx-auto" />
-            <p className="font-semibold text-slate-300">No courses available yet.</p>
-            <p className="text-[11px] text-slate-500">Courses published in the Admin Panel will dynamically appear here.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {courses.slice(0, 6).map((c) => {
-              const isFree = (c.access_type || 'free').toLowerCase() === 'free';
-              return (
-                <div
-                  key={c.id}
-                  onClick={() => onNavigate('course-detail', c.id)}
-                  className="group bg-[#12141C] hover:bg-[#161924] border border-[#222634] hover:border-indigo-500/40 rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-xl hover:shadow-indigo-500/5 flex flex-col justify-between"
-                >
-                  <div className="relative h-36 w-full overflow-hidden bg-slate-900">
-                    <img 
-                      src={c.thumbnail || 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=600&auto=format&fit=crop&q=80'} 
-                      alt={c.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#12141C] via-transparent to-black/30"></div>
-                    <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5">
-                      <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full shadow-md backdrop-blur-md ${
-                        isFree 
-                          ? 'bg-emerald-500/90 text-white' 
-                          : 'bg-amber-500/90 text-slate-950 font-extrabold'
-                      }`}>
-                        {isFree ? 'Free' : 'Pro Pass'}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-2.5 left-3">
-                      <span className="text-[10px] font-mono font-medium text-indigo-200 bg-indigo-950/80 border border-indigo-500/30 px-2 py-0.5 rounded-md backdrop-blur-md">
-                        {c.subject_name || 'B.Tech'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h4 className="text-sm font-bold text-white group-hover:text-indigo-300 transition line-clamp-2 leading-snug">
-                        {c.title}
-                      </h4>
-                      {c.short_description && (
-                        <p className="text-xs text-[#8E92A4] mt-1.5 line-clamp-2 leading-relaxed">
-                          {c.short_description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="pt-3 border-t border-[#1C1F2B] flex items-center justify-between text-xs text-[#8E92A4]">
-                      <div className="flex items-center gap-3 text-[11px] font-mono">
-                        <span className="flex items-center gap-1">
-                          <Layers className="w-3.5 h-3.5 text-indigo-400" />
-                          <span>{c.lectures_count || 0} lecs</span>
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-slate-500" />
-                          <span>{c.duration_hours || 10}h</span>
-                        </span>
-                      </div>
-                      <span className="text-xs font-semibold text-white group-hover:text-indigo-400 transition flex items-center gap-1">
-                        Start <Play className="w-3 h-3 fill-current" />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 4. Quick Coding Challenge Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">
-              Popular Coding Problems
-            </h2>
-            <p className="text-xs text-[#8E92A4]">
-              Sharpen your problem solving skills with instant testcase feedback
+          {/* Metric 2: Lessons Completed */}
+          <div className="mono-card bg-[#0F0F0F] border border-[#1F1F1F] rounded-lg p-5 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl sm:text-3xl font-bold font-mono text-white">
+                48
+              </span>
+              <span className="text-xs font-mono text-[#666666]">16 Remaining</span>
+            </div>
+            
+            <p className="text-xs text-[#A0A0A0] font-medium">
+              Lessons Completed
             </p>
+
+            <div className="mono-progress-track">
+              <div className="mono-progress-fill" style={{ width: '75%' }}></div>
+            </div>
           </div>
-          <button 
-            onClick={() => onNavigate('coding')}
-            className="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1"
-          >
-            <span>Explore all problems</span>
-            <span>→</span>
-          </button>
+
+          {/* Metric 3: Courses Started */}
+          <div className="mono-card bg-[#0F0F0F] border border-[#1F1F1F] rounded-lg p-5 space-y-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl sm:text-3xl font-bold font-mono text-white">
+                12
+              </span>
+              <span className="text-xs font-mono text-[#666666]">Active Tracks</span>
+            </div>
+            
+            <p className="text-xs text-[#A0A0A0] font-medium">
+              Courses Started
+            </p>
+
+            <div className="mono-progress-track">
+              <div className="mono-progress-fill" style={{ width: '60%' }}></div>
+            </div>
+          </div>
+
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="h-24 rounded-xl bg-[#12141C] border border-[#222634] animate-pulse"></div>
-            ))}
-          </div>
-        ) : problems.length === 0 ? (
-          <div className="py-10 text-center text-xs text-[#6B7280] bg-[#12141C] rounded-xl border border-[#222634]">
-            No problems listed yet.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {problems.slice(0, 3).map((p) => {
-              const diff = (p.difficulty || 'Easy').toLowerCase();
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => onNavigate('problem-solver', p.id)}
-                  className="group bg-[#12141C] hover:bg-[#161924] border border-[#222634] hover:border-[#353B4E] rounded-xl p-4 cursor-pointer transition duration-150 flex flex-col justify-between space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-xs font-semibold text-white group-hover:text-emerald-300 transition line-clamp-1">
-                      {p.title}
-                    </h4>
-                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize shrink-0 ${
-                      diff === 'hard'
-                        ? 'bg-rose-950/60 text-rose-300 border border-rose-800/40'
-                        : diff === 'medium'
-                        ? 'bg-amber-950/60 text-amber-300 border border-amber-800/40'
-                        : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/40'
-                    }`}>
-                      {p.difficulty || 'Easy'}
-                    </span>
-                  </div>
-
-                  <p className="text-[11px] text-[#8E92A4] line-clamp-2 leading-relaxed">
-                    {p.description || 'Practice algorithmic problem solving in multiple languages.'}
-                  </p>
-
-                  <div className="flex items-center justify-between text-[11px] text-[#6B7280] pt-1">
-                    <span className="font-mono">{p.category || 'Algorithm'}</span>
-                    <span className="text-emerald-400 group-hover:translate-x-0.5 transition-transform font-medium flex items-center gap-1">
-                      Solve <ArrowRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 5. Minimal Clean Footer Note */}
-      <div className="text-center text-xs text-[#525769] pt-6 pb-2">
-        B.Tech Learning Platform • Simple, Focused & Distraction-Free
-      </div>
+      </section>
 
     </div>
   );

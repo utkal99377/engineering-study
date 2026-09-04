@@ -8,40 +8,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
-        },
-        dark: {
-          bg: '#0B0F19',
-          surface: '#111827',
-          card: '#1F2937',
-          border: '#374151'
+        mono: {
+          bg: '#050505',
+          surface: '#0A0A0A',
+          card: '#0F0F0F',
+          cardHover: '#141414',
+          border: '#1F1F1F',
+          borderSubtle: '#181818',
+          borderHover: '#333333',
+          borderFocus: '#555555',
+          text: '#FFFFFF',
+          textSecondary: '#A0A0A0',
+          textMuted: '#666666',
+          track: '#1A1A1A',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'Outfit', 'system-ui', 'sans-serif'],
-        mono: ['Fira Code', 'JetBrains Mono', 'Consolas', 'monospace']
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace']
       },
-      animation: {
-        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'float': 'float 6s ease-in-out infinite',
-      },
-      keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-8px)' },
-        }
-      }
     },
   },
   plugins: [],

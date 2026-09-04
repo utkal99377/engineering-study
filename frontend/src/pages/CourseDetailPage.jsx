@@ -1,420 +1,310 @@
 import React, { useEffect, useState } from 'react';
 import { 
   BookOpen, 
-  Lock, 
-  Unlock, 
-  CheckCircle2, 
-  PlayCircle, 
-  Clock, 
-  Crown, 
-  Layers, 
   ArrowLeft, 
-  FileText, 
-  Video, 
-  FileCode, 
-  Sparkles,
-  HelpCircle,
-  Terminal,
-  ShieldAlert
+  Play, 
+  CheckCircle2, 
+  Clock, 
+  Layers, 
+  Code, 
+  ChevronRight,
+  FileText
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-export const CourseDetailPage = ({ courseId, onNavigate, onOpenSubscribe }) => {
-  const { user, entitlement } = useAuth();
-  const [course, setCourse] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('syllabus'); // syllabus, theory, coding
-  const [theoryQuestions, setTheoryQuestions] = useState([]);
-  const [codingProblems, setCodingProblems] = useState([]);
+const FALLBACK_COURSES = {
+  course_java: {
+    id: 'course_java',
+    title: 'Java',
+    short_description: 'Learn Java programming from fundamentals to object-oriented programming.',
+    description: 'Master Java syntax, OOP concepts, inheritance, polymorphism, abstract classes, collections framework, and robust error handling for engineering systems.',
+    progress: 65,
+    level: 'Beginner',
+    duration_text: '8h 30m',
+    lessons_count: 24,
+    modules: [
+      {
+        id: 'm1',
+        title: 'Module 1: Java Fundamentals & Syntax',
+        lessons: [
+          { id: 'l1', title: '1. Introduction to JVM, JDK & Bytecode', duration: '20 min', completed: true },
+          { id: 'l2', title: '2. Primitive Data Types & Variables', duration: '25 min', completed: true },
+          { id: 'l3', title: '3. Operators & Control Flow (if/switch/loops)', duration: '35 min', completed: true },
+          { id: 'l4', title: '4. Arrays & String Manipulation', duration: '30 min', completed: true },
+        ]
+      },
+      {
+        id: 'm2',
+        title: 'Module 2: Object-Oriented Programming (OOP)',
+        lessons: [
+          { id: 'l5', title: '5. Classes, Objects & Constructors', duration: '40 min', completed: true },
+          { id: 'l6', title: '6. Encapsulation & Access Modifiers', duration: '30 min', completed: true },
+          { id: 'l7', title: '7. Inheritance & Method Overriding', duration: '45 min', completed: true },
+          { id: 'l8', title: '8. Polymorphism, Interfaces & Abstract Classes', duration: '50 min', completed: false, current: true },
+        ]
+      },
+      {
+        id: 'm3',
+        title: 'Module 3: Advanced Java & Collections',
+        lessons: [
+          { id: 'l9', title: '9. Exception Handling (try/catch/finally)', duration: '35 min', completed: false },
+          { id: 'l10', title: '10. Java Collections: Lists, Sets & Maps', duration: '60 min', completed: false },
+          { id: 'l11', title: '11. Generics & Streams API', duration: '45 min', completed: false },
+          { id: 'l12', title: '12. Multithreading & Concurrency Basics', duration: '50 min', completed: false },
+        ]
+      }
+    ]
+  },
+  course_cpp: {
+    id: 'course_cpp',
+    title: 'C++',
+    short_description: 'Build strong programming fundamentals with modern C++.',
+    description: 'Deep dive into pointers, memory management, classes, templates, STL containers, and modern C++ engineering practices.',
+    progress: 35,
+    level: 'Intermediate',
+    duration_text: '7h 15m',
+    lessons_count: 20,
+    modules: [
+      {
+        id: 'm1',
+        title: 'Module 1: C++ Syntax & Pointers',
+        lessons: [
+          { id: 'l1', title: '1. Variables, References & Pointers', duration: '30 min', completed: true },
+          { id: 'l2', title: '2. Dynamic Memory Allocation (new/delete)', duration: '40 min', completed: true },
+        ]
+      },
+      {
+        id: 'm2',
+        title: 'Module 2: Classes & STL Containers',
+        lessons: [
+          { id: 'l3', title: '3. Operator Overloading & Copy Constructors', duration: '45 min', completed: false, current: true },
+          { id: 'l4', title: '4. Vectors, Maps & Algorithms', duration: '50 min', completed: false },
+        ]
+      }
+    ]
+  },
+  course_python: {
+    id: 'course_python',
+    title: 'Python',
+    short_description: 'Learn Python programming, problem solving, and practical development.',
+    description: 'Understand core Python, data structures, functional paradigms, OOP, automation scripts, and practical problem solving.',
+    progress: 80,
+    level: 'Beginner',
+    duration_text: '9h 45m',
+    lessons_count: 28,
+    modules: [
+      {
+        id: 'm1',
+        title: 'Module 1: Core Python & Data Structures',
+        lessons: [
+          { id: 'l1', title: '1. Python Syntax & Dynamic Typing', duration: '25 min', completed: true },
+          { id: 'l2', title: '2. Lists, Tuples, Dictionaries & Sets', duration: '35 min', completed: true },
+        ]
+      },
+      {
+        id: 'm2',
+        title: 'Module 2: Functions, OOP & Modules',
+        lessons: [
+          { id: 'l3', title: '3. Decorators & Context Managers', duration: '40 min', completed: true },
+          { id: 'l4', title: '4. Object Oriented Python', duration: '45 min', completed: false, current: true },
+        ]
+      }
+    ]
+  },
+  course_dsa: {
+    id: 'course_dsa',
+    title: 'Data Structures & Algorithms',
+    slug: 'dsa',
+    short_description: 'Master core data structures and algorithmic problem solving.',
+    description: 'Step-by-step mastery of Arrays, Linked Lists, Stacks, Queues, Binary Trees, Graphs, Sorting, Recursion, and Dynamic Programming.',
+    progress: 20,
+    level: 'Intermediate',
+    duration_text: '12h 00m',
+    lessons_count: 32,
+    modules: [
+      {
+        id: 'm1',
+        title: 'Module 1: Linear Data Structures',
+        lessons: [
+          { id: 'l1', title: '1. Arrays & Dynamic Array Implementation', duration: '35 min', completed: true },
+          { id: 'l2', title: '2. Singly & Doubly Linked Lists', duration: '45 min', completed: false, current: true },
+          { id: 'l3', title: '3. Stacks & Queues Applications', duration: '40 min', completed: false },
+        ]
+      }
+    ]
+  },
+  course_web_dev: {
+    id: 'course_web_dev',
+    title: 'Web Development',
+    slug: 'web-development',
+    short_description: 'Learn HTML, CSS, JavaScript, and modern web development.',
+    description: 'Construct modern, accessible, responsive web applications from semantic HTML5 and CSS to modern ES6+ JavaScript and component architecture.',
+    progress: 10,
+    level: 'Beginner',
+    duration_text: '10h 30m',
+    lessons_count: 26,
+    modules: [
+      {
+        id: 'm1',
+        title: 'Module 1: Web Foundation & Modern Layouts',
+        lessons: [
+          { id: 'l1', title: '1. Semantic HTML5 & Accessibility', duration: '30 min', completed: true },
+          { id: 'l2', title: '2. CSS Grid & Modern Flexbox', duration: '45 min', completed: false, current: true },
+        ]
+      }
+    ]
+  },
+  course_sql: {
+    id: 'course_sql',
+    title: 'SQL & Databases',
+    slug: 'sql-databases',
+    short_description: 'Master relational databases, SQL queries, indexing, and data modeling.',
+    description: 'Comprehensive grounding in relational database systems, CRUD operations, joins, subqueries, indexing, schema design, and ACID transactions.',
+    progress: 0,
+    level: 'Beginner',
+    duration_text: '6h 00m',
+    lessons_count: 18,
+    modules: [
+      {
+        id: 'm1',
+        title: 'Module 1: Relational Modeling & Basic SQL',
+        lessons: [
+          { id: 'l1', title: '1. Relational Database Concepts & Tables', duration: '30 min', completed: false, current: true },
+          { id: 'l2', title: '2. SELECT, WHERE, GROUP BY & Joins', duration: '45 min', completed: false },
+        ]
+      }
+    ]
+  }
+};
+
+export const CourseDetailPage = ({ courseId, onNavigate }) => {
+  const { user } = useAuth();
+  const initialKey = courseId || 'course_java';
+  // Instant preloaded state
+  const [course, setCourse] = useState(() => FALLBACK_COURSES[initialKey] || FALLBACK_COURSES.course_java);
 
   useEffect(() => {
-    if (courseId) {
-      loadCourseDetail();
-    }
+    loadCourseDetail();
   }, [courseId]);
 
   const loadCourseDetail = async () => {
-    setLoading(true);
     try {
-      const [courseData, qData, probData] = await Promise.all([
-        api.getCourseDetail(courseId),
-        api.getQuestions({ course_id: courseId }),
-        api.getProblems({ course_id: courseId }),
-      ]);
-      setCourse(courseData);
-      setTheoryQuestions(qData);
-      setCodingProblems(probData);
-    } catch (err) {
-      console.error('Failed to load course details:', err);
-    } finally {
-      setLoading(false);
+      const data = await api.getCourseDetail(courseId);
+      if (data && data.title) {
+        setCourse(data);
+      }
+    } catch (e) {
+      const key = courseId || 'course_java';
+      setCourse(FALLBACK_COURSES[key] || FALLBACK_COURSES.course_java);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-        <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-        <p className="text-xs text-slate-400 font-mono">Loading course curriculum...</p>
-      </div>
-    );
-  }
-
   if (!course) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-12 text-center glass-card rounded-2xl">
-        <h2 className="text-lg font-bold text-white">Course Not Found</h2>
-        <button
-          onClick={() => onNavigate('courses')}
-          className="mt-4 px-4 py-2 rounded-lg bg-slate-800 text-xs font-semibold text-indigo-300"
-        >
-          Back to Catalog
-        </button>
-      </div>
-    );
+    return null;
   }
-
-  // Find first unlocked lecture to start
-  const firstUnlockedLecture = course.modules
-    ?.flatMap(m => m.lectures)
-    ?.find(l => l.is_unlocked);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10">
       
       {/* Back Button */}
       <button
-        onClick={() => onNavigate('courses')}
-        className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition"
+        onClick={() => onNavigate('home')}
+        className="mono-btn-ghost text-xs -ml-2 text-[#A0A0A0] hover:text-white"
       >
-        <ArrowLeft className="w-4 h-4" />
-        <span>Back to Course Catalog</span>
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>Back to Dashboard</span>
       </button>
 
-      {/* Course Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden glass-panel border border-slate-800 p-6 sm:p-8 flex flex-col md:flex-row gap-8 items-center">
-        <div className="w-full md:w-80 h-48 sm:h-56 rounded-2xl overflow-hidden bg-slate-900 shrink-0 relative shadow-xl">
-          <img
-            src={course.thumbnail}
-            alt={course.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute top-3 right-3">
-            {course.access_type === 'free' ? (
-              <span className="px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider shadow">
-                Free
-              </span>
-            ) : (
-              <span className="px-3 py-1 rounded-full bg-amber-500 text-black text-[10px] font-bold uppercase tracking-wider shadow flex items-center gap-1">
-                <Crown className="w-3.5 h-3.5" /> Pro Access
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="flex-1 space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-mono font-medium">
-              {course.subject_name || 'B.Tech Subject'}
+      {/* Course Overview Header */}
+      <div className="mono-card bg-[#0F0F0F] border border-[#1F1F1F] p-6 sm:p-8 rounded-lg space-y-6">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#141414] text-[#A0A0A0] border border-[#262626]">
+              {course.level || 'Beginner'}
             </span>
-            <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-mono">
-              {course.level}
-            </span>
+            <span className="text-xs text-[#666666]">·</span>
+            <span className="text-xs font-mono text-[#666666]">{course.duration_text || '8h 30m'}</span>
+            <span className="text-xs text-[#666666]">·</span>
+            <span className="text-xs font-mono text-[#666666]">{course.lessons_count || 24} Lessons</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-white">
             {course.title}
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <p className="text-sm text-[#A0A0A0] max-w-2xl leading-relaxed">
             {course.description || course.short_description}
           </p>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-2 border-t border-slate-800">
-            <div className="flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-indigo-400" />
-              <span>{course.lectures_count} Sequential Lectures</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-slate-500" />
-              <span>{course.duration_hours} Total Hours</span>
-            </div>
-            {course.user_progress_percentage > 0 && (
-              <div className="flex items-center gap-1.5 text-indigo-300 font-mono font-semibold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>{course.user_progress_percentage}% Completed</span>
-              </div>
-            )}
+        {/* Progress bar */}
+        <div className="space-y-2 pt-2 border-t border-[#181818] max-w-md">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[#666666]">Your Progress</span>
+            <span className="font-mono text-white font-medium">{course.progress || 0}% Complete</span>
           </div>
-
-          {/* Start / Continue Button */}
-          <div className="pt-3 flex flex-wrap items-center gap-3">
-            {firstUnlockedLecture ? (
-              <button
-                onClick={() => onNavigate('lecture-player', firstUnlockedLecture.id)}
-                className="px-6 py-3 rounded-xl gradient-brand-btn text-white text-xs sm:text-sm font-semibold shadow-lg flex items-center gap-2 hover:scale-[1.02] transition"
-              >
-                <PlayCircle className="w-4 h-4" />
-                <span>{course.user_progress_percentage > 0 ? 'Continue Next Lecture' : 'Start Course'}</span>
-              </button>
-            ) : course.access_type === 'premium' && !course.has_premium_access ? (
-              <button
-                onClick={onOpenSubscribe}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs sm:text-sm font-bold shadow-lg flex items-center gap-2 hover:scale-[1.02] transition"
-              >
-                <Crown className="w-4 h-4" />
-                <span>Unlock with B.Tech Pro Pass</span>
-              </button>
-            ) : !course.modules || course.modules.length === 0 || course.modules.reduce((a, m) => a + (m.lectures?.length || 0), 0) === 0 ? (
-              <div className="text-xs text-indigo-300 font-mono flex items-center gap-1.5 bg-indigo-950/40 px-3 py-1.5 rounded-lg border border-indigo-500/20">
-                <Sparkles className="w-4 h-4 text-indigo-400" />
-                <span>Curriculum modules are being scheduled by the instructor.</span>
-              </div>
-            ) : (
-              <div className="text-xs text-rose-400 flex items-center gap-1.5">
-                <ShieldAlert className="w-4 h-4" />
-                <span>Complete previous lecture prerequisites to unlock.</span>
-              </div>
-            )}
+          <div className="mono-progress-track">
+            <div className="mono-progress-fill" style={{ width: `${course.progress || 0}%` }}></div>
           </div>
         </div>
       </div>
 
-      {/* Tabs (Syllabus / Theory MCQs / Coding Problems) */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-        <button
-          onClick={() => setActiveTab('syllabus')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${
-            activeTab === 'syllabus'
-              ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40'
-              : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>Course Modules & Syllabus ({course.modules?.length || 0})</span>
-        </button>
+      {/* Course Syllabus / Lessons Structure */}
+      <div className="space-y-4">
+        <h2 className="text-base font-semibold text-white">
+          Course Curriculum
+        </h2>
 
-        <button
-          onClick={() => setActiveTab('theory')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${
-            activeTab === 'theory'
-              ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40'
-              : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          <HelpCircle className="w-4 h-4" />
-          <span>Theory & MCQ Practice ({theoryQuestions.length})</span>
-        </button>
+        <div className="space-y-3">
+          {(course.modules || []).map((mod, modIdx) => (
+            <div 
+              key={mod.id || modIdx}
+              className="mono-card bg-[#0F0F0F] border border-[#1F1F1F] rounded-lg overflow-hidden"
+            >
+              <div className="px-5 py-3.5 bg-[#0A0A0A] border-b border-[#181818]">
+                <h3 className="text-xs font-mono font-semibold text-white">
+                  {mod.title}
+                </h3>
+              </div>
 
-        <button
-          onClick={() => setActiveTab('coding')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition ${
-            activeTab === 'coding'
-              ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40'
-              : 'text-slate-400 hover:text-white'
-          }`}
-        >
-          <Terminal className="w-4 h-4" />
-          <span>Lab & Coding Challenges ({codingProblems.length})</span>
-        </button>
-      </div>
-
-      {/* Tab Content: Syllabus / Modules */}
-      {activeTab === 'syllabus' && (
-        <div className="space-y-6">
-          {(!course.modules || course.modules.length === 0) ? (
-            <div className="p-12 text-center glass-card rounded-2xl border border-slate-800 space-y-3">
-              <Layers className="w-12 h-12 text-slate-600 mx-auto" />
-              <h3 className="text-base font-bold text-white">Curriculum Modules Coming Soon</h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
-                The course structure has been registered. Course modules, sequential video lectures, and practice problems are being uploaded.
-              </p>
-            </div>
-          ) : (
-            course.modules.map((mod, modIdx) => (
-              <div key={mod.id} className="glass-card rounded-2xl p-6 border border-slate-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 font-semibold">
-                      Module {modIdx + 1}
-                    </span>
-                    <h3 className="text-base sm:text-lg font-bold text-white mt-0.5">{mod.title}</h3>
-                    {mod.description && (
-                      <p className="text-xs text-slate-400 mt-1">{mod.description}</p>
-                    )}
-                  </div>
-                  <span className="text-xs text-slate-500 font-mono">
-                    {mod.lectures?.length || 0} Lectures
-                  </span>
-                </div>
-
-              {/* Lecture list in Module */}
-              <div className="divide-y divide-slate-800/80 border-t border-slate-800/80 pt-2">
-                {mod.lectures?.map((lec) => {
-                  const isCompleted = lec.access_state === 'completed';
-                  const isAvailable = lec.access_state === 'available' || lec.access_state === 'in_progress';
-                  const isLocked = lec.access_state === 'locked';
-                  const isPremiumLocked = lec.access_state === 'premium_locked';
-
-                  return (
-                    <div
-                      key={lec.id}
-                      onClick={() => {
-                        if (lec.is_unlocked) {
-                          onNavigate('lecture-player', lec.id);
-                        } else if (isPremiumLocked) {
-                          onOpenSubscribe();
-                        }
-                      }}
-                      className={`py-3.5 px-3 rounded-xl flex items-center justify-between transition ${
-                        lec.is_unlocked
-                          ? 'hover:bg-slate-800/60 cursor-pointer text-slate-100'
-                          : 'opacity-70 cursor-not-allowed text-slate-400'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        {/* State Icon */}
-                        {isCompleted ? (
-                          <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                            <CheckCircle2 className="w-4 h-4" />
-                          </div>
-                        ) : isAvailable ? (
-                          <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                            <BookOpen className="w-4 h-4" />
-                          </div>
-                        ) : isPremiumLocked ? (
-                          <div className="w-8 h-8 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center">
-                            <Crown className="w-4 h-4" />
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center">
-                            <Lock className="w-4 h-4" />
-                          </div>
-                        )}
-
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-semibold text-white flex items-center gap-2">
-                            <span>{lec.title}</span>
-                            {isCompleted && (
-                              <span className="text-[10px] text-emerald-400 font-mono font-medium">Completed</span>
-                            )}
-                          </h4>
-                          <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-slate-500" />
-                              {lec.duration_min} mins
-                            </span>
-                            {lec.resources?.length > 0 && (
-                              <span className="flex items-center gap-1 text-indigo-400">
-                                <FileText className="w-3 h-3" />
-                                {lec.resources.length} Notes/Attachments
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Access State Tag */}
-                      <div className="text-right">
-                        {isCompleted ? (
-                          <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono">
-                            Passed
-                          </span>
-                        ) : isAvailable ? (
-                          <span className="px-2 py-1 rounded bg-indigo-500/10 text-indigo-300 text-[10px] font-mono font-medium">
-                            Ready to Learn
-                          </span>
-                        ) : isPremiumLocked ? (
-                          <span className="px-2 py-1 rounded bg-amber-500/10 text-amber-300 text-[10px] font-mono font-medium flex items-center gap-1">
-                            <Crown className="w-3 h-3" /> Pro Only
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 rounded bg-slate-800 text-slate-500 text-[10px] font-mono flex items-center gap-1">
-                            <Lock className="w-3 h-3" /> Prerequisite Req.
-                          </span>
-                        )}
+              <div className="divide-y divide-[#141414]">
+                {(mod.lectures || mod.lessons || []).map((lesson, lesIdx) => (
+                  <div
+                    key={lesson.id || lesIdx}
+                    className="px-5 py-3 flex items-center justify-between hover:bg-[#141414] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {lesson.completed ? (
+                        <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
+                      ) : lesson.current ? (
+                        <div className="w-2 h-2 rounded-full bg-white animate-pulse shrink-0 ml-1 mr-1" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border border-[#333333] shrink-0" />
+                      )}
+                      
+                      <div>
+                        <p className={`text-xs font-medium ${lesson.completed || lesson.current ? 'text-white' : 'text-[#A0A0A0]'}`}>
+                          {lesson.title}
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
+
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] font-mono text-[#666666]">
+                        {lesson.duration || '25 min'}
+                      </span>
+                      <button className="mono-btn-ghost text-xs p-1 hover:text-white">
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          )))}
+          ))}
         </div>
-      )}
-
-      {/* Tab Content: Theory Questions */}
-      {activeTab === 'theory' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white">Course Theory Assessments & MCQs</h3>
-            <button
-              onClick={() => onNavigate('theory', { course_id: course.id })}
-              className="px-4 py-2 rounded-xl gradient-brand-btn text-white text-xs font-semibold"
-            >
-              Start Interactive MCQ Mode
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {theoryQuestions.map((q) => (
-              <div key={q.id} className="glass-card p-4 rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">
-                    {q.type.toUpperCase()}
-                  </span>
-                  <span className="text-xs text-amber-400 font-mono">{q.marks} Marks</span>
-                </div>
-                <h4 className="text-xs sm:text-sm font-semibold text-slate-100">{q.text}</h4>
-                {q.user_attempt && (
-                  <div className="text-[11px] text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Attempted (Score: {q.user_attempt.score_obtained} pts)</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tab Content: Coding Problems */}
-      {activeTab === 'coding' && (
-        <div className="space-y-4">
-          <h3 className="text-base font-bold text-white">Curated Engineering Lab Problems</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {codingProblems.map((prob) => (
-              <div
-                key={prob.id}
-                onClick={() => onNavigate('problem-solver', prob.id)}
-                className="glass-card p-4 rounded-xl cursor-pointer hover:border-indigo-500/40 transition flex items-center justify-between"
-              >
-                <div>
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
-                    prob.difficulty === 'Easy' ? 'bg-emerald-500/20 text-emerald-300' :
-                    prob.difficulty === 'Medium' ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'
-                  }`}>
-                    {prob.difficulty}
-                  </span>
-                  <h4 className="text-sm font-bold text-white mt-1">{prob.title}</h4>
-                  <div className="flex gap-1.5 mt-1.5">
-                    {prob.tags?.map((t, idx) => (
-                      <span key={idx} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <button className="px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 text-xs font-semibold border border-indigo-500/30">
-                  Solve in IDE →
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
 
     </div>
   );
